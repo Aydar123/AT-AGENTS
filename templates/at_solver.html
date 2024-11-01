@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Вывод консоли в реальном времени</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+</head>
+<body>
+
+<div class="container mt-5">
+    <h1>Совместное функционирование</h1>
+    <div id="output" class="alert alert-secondary" style="height: 300px; overflow-y: scroll;">
+        <pre></pre>
+    </div>
+    <button class="btn btn-primary" onclick="runScript()">Запустить АТ-Решатель и Планировщик</button>
+</div>
+
+<script>
+    var socket = io();
+
+    // Функция запуска скрипта
+    function runScript() {
+        document.getElementById('output').querySelector('pre').textContent = '';  // Очищаем вывод
+        socket.emit('run_script');  // Запрос на запуск скрипта
+    }
+
+    // Получение данных от сервера
+    socket.on('console_output', function(data) {
+        const output = document.getElementById('output').querySelector('pre');
+        output.textContent += data + "\n";  // Добавляем новую строку
+        output.scrollTop = output.scrollHeight;  // Автоматическая прокрутка вниз
+    });
+</script>
+
+</body>
+</html>

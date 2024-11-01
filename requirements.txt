@@ -1,0 +1,8 @@
+numpy
+networkx
+sortedcontainers
+ipythonblocks
+jsonpickle
+flask_socketio
+eventlet
+colorama

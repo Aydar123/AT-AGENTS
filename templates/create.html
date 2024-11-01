@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Создать задачу: Список дел</title>
+    <link href="/static/bootstrap.min.css" rel="stylesheet"/>
+    <script src="/static/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div>
+        <h2>Создать задачу</h2>
+        <p class="lead">
+            Это очень быстро и удобно - попробуйте сами
+        </p>
+
+        <form action="/todo/create" method="post">
+            <div class="col-md-8 mb-3">
+                <label class="form-label">Текст задачи</label>
+                <textarea name="text" type="text" rows="3" class="form-control form-control-lg"></textarea>
+            </div>
+            <div class="col-md-8 mb-3">
+                <label class="form-label">Дата создания</label>
+                <input value="{{ now_date }}" name="date" class="form-control form-control-lg" readonly>
+            </div>
+            <button type="submit" class="btn btn-lg btn-primary rounded-4 mt-1">
+                Создать
+            </button>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

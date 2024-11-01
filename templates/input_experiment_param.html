@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Выбор автомобиля и парковки</title>
+    <link href="/static/bootstrap.min.css" rel="stylesheet"/>
+    <script src="/static/bootstrap.min.js"></script>
+    <script>
+        function updateParkingLoad() {
+            var parkingSelect = document.getElementById("parking");
+            var selectedParking = parkingSelect.value;
+            var parkingLoad = document.getElementById("parkingLoad");
+
+            if (selectedParking === "Parking1") {
+                parkingLoad.textContent = "Загруженность: 27%";
+            } else if (selectedParking === "Parking2") {
+                parkingLoad.textContent = "Загруженность: 10%";
+            } else if (selectedParking === "Parking3") {
+                parkingLoad.textContent = "Загруженность: 97%";
+            } else {
+                parkingLoad.textContent = "";
+            }
+        }
+    </script>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div>
+        <h2>Выбор автомобиля и парковки</h2>
+        <p class="lead">
+            Пожалуйста, выберите автомобиль и точку прибытия.
+        </p>
+
+        <form action="/save" method="post">
+            <div class="col-md-8 mb-3">
+                <label class="form-label">Выберите автомобиль</label>
+                <select name="driver" class="form-control form-control-lg">
+                    <option value="Driver1">Driver1</option>
+                    <option value="Driver2">Driver2</option>
+                </select>
+            </div>
+            <div class="col-md-8 mb-3">
+                <label class="form-label">Выберите точку прибытия</label>
+                <select name="parking" id="parking" class="form-control form-control-lg" onchange="updateParkingLoad()">
+                    <option value="">Выберите парковку</option>
+                    <option value="Parking1">Parking1</option>
+                    <option value="Parking2">Parking2</option>
+                    <option value="Parking3">Parking3</option>
+                </select>
+            </div>
+            <div class="col-md-8 mb-3">
+                <p id="parkingLoad" class="form-text text-muted"></p>
+            </div>
+            <div class="col-md-8 mb-3">
+                <a href="/todoOutput" class="btn btn-lg btn-secondary rounded-4 mt-1">Назад</a>
+                <button type="submit" class="btn btn-lg btn-primary rounded-4 mt-1">Сохранить</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+</body>
+</html>

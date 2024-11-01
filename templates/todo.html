@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>input-data</title>
+    <link href="/static/bootstrap.min.css" rel="stylesheet"/>
+    <script src="/static/bootstrap.min.js"></script>
+</head>
+<body>
+
+<div class="container mt-5">
+    <div>
+        <h2>Входные данные</h2>
+        <p class="lead">
+            Поэтапно выполните ниже указанные действия для создания интеллектуального агента
+        </p>
+        <a href="/list/agents" type="button" class="btn btn-primary rounded-4 mt-1">
+            Назад
+        </a>
+        <a href="/todoOutput" type="button" class="btn btn-success rounded-4 mt-1">
+            Далее
+        </a>
+        <hr class="col-md-6">
+    </div>
+
+  {% if todo == [] %}
+    <div class="alert alert-light border-3 rounded-4 mt-4" role="alert">
+        <p class="lead mb-0">
+            У вас пока что нет задач
+        </p>
+    </div>
+  {% else %}
+  <div class="mt-3">
+    <ul class="list-group col-md-6 rounded-4">
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+                <div class="fw-bold">
+                    1. Создать Базу Знаний
+                </div>
+                <div class="form-text">
+                    Для создания БЗ перейдите в редактор с помощью кнопки "перейти" ниже
+                </div>
+                <hr>
+                <div class="btn-group w-100 rounded-4 mb-1" role="group" >
+                    <a href="http://185.17.141.230:8787/" type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
+                        Перейти
+                    </a>
+                    <a type="button" class="btn btn-outline-primary btn-sm rounded-end-4">
+                        Загрузить
+                    </a>
+                </div>
+            </div>
+            {% if checked == True %}
+            <span class="badge text-bg-success rounded-4 small">
+                Выполнено
+            </span>
+            {% else %}
+            <span class="badge text-bg-danger rounded-4 small">
+                Не выполнено
+            </span>
+            {% endif %}
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+                <div class="fw-bold">
+                    2. Создать внешнее окружение
+                </div>
+                <div class="form-text">
+                    Для создания внешнего окружения перейдите в редактор с помощью кнопки "перейти" ниже
+                </div>
+                <hr>
+                <div class="btn-group w-100 rounded-4 mb-1" role="group" >
+                    <a type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
+                        Перейти
+                    </a>
+                    <a type="button" class="btn btn-outline-primary btn-sm rounded-end-4">
+                        Загрузить
+                    </a>
+                </div>
+            </div>
+            {% if checked == True %}
+            <span class="badge text-bg-success rounded-4 small">
+                Выполнено
+            </span>
+            {% else %}
+            <span class="badge text-bg-danger rounded-4 small">
+                Не выполнено
+            </span>
+            {% endif %}
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+                <div class="fw-bold">
+                    3. Создать Базу Планов
+                </div>
+                <div class="form-text">
+                    Для создания БП перейдите в редактор с помощью кнопки "перейти" ниже
+                </div>
+                <hr>
+                <div class="btn-group w-100 rounded-4 mb-1" role="group" >
+                    <a type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
+                        Перейти
+                    </a>
+                    <a type="button" class="btn btn-outline-primary btn-sm rounded-end-4">
+                        Загрузить
+                    </a>
+                </div>
+            </div>
+            {% if checked == True %}
+            <span class="badge text-bg-success rounded-4 small">
+                Выполнено
+            </span>
+            {% else %}
+            <span class="badge text-bg-danger rounded-4 small">
+                Не выполнено
+            </span>
+            {% endif %}
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+                <div class="fw-bold">
+                    4. Создать Базу Действий
+                </div>
+                <div class="form-text">
+                    Для создания базы действий перейдите в редактор с помощью кнопки "перейти" ниже
+                </div>
+                <hr>
+                <div class="btn-group w-100 rounded-4 mb-1" role="group" >
+                    <a type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
+                        Перейти
+                    </a>
+                    <a type="button" class="btn btn-outline-primary btn-sm rounded-end-4">
+                        Загрузить
+                    </a>
+                </div>
+            </div>
+            {% if checked == True %}
+            <span class="badge text-bg-success rounded-4 small">
+                Выполнено
+            </span>
+            {% else %}
+            <span class="badge text-bg-danger rounded-4 small">
+                Не выполнено
+            </span>
+            {% endif %}
+        </li>
+    </ul>
+  </div>
+  {% endif %}
+</div>
+
+</body>
+</html>
