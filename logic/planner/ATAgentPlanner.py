@@ -6,7 +6,15 @@ from at_queue.core.session import ConnectionParameters
 import asyncio
 import logging
 import jsonpickle
+import yaml
 import json
+import os
+
+
+with open("config.yaml", "r") as config_file:
+    config = yaml.safe_load(config_file)
+
+connection_url = config["connection"]["url"]
 
 # База Планов
 # База планов описана с помощью языка планирования PDDL (Planning Domain Definition Language)
@@ -177,10 +185,17 @@ class ATAgentPlanner(ATComponent):
 
 
 async def main():
-    connection_parameters = ConnectionParameters('amqp://0.0.0.0:5672/') # Параметры подключения к RabbitMQ
+    connection_parameters = ConnectionParameters(connection_url) # Параметры подключения к RabbitMQ
     at_planner = ATAgentPlanner(connection_parameters=connection_parameters, planning_base=planning_base) # Создание компонента
     await at_planner.initialize() # Подключение компонента к RabbitMQ
     await at_planner.register() # Отправка сообщения на регистрацию в брокер
+
+    if not os.path.exists('/var/run/planner/'):
+        os.makedirs('/var/run/planner/')
+
+    with open('/var/run/planner/pidfile.pid', 'w') as f:
+        f.write(str(os.getpid()))
+
     await at_planner.start() # Запуск компонента в режиме ожидания сообщений
 
 

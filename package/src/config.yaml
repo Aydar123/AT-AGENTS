@@ -1,0 +1,2 @@
+connection:
+  url: "amqp://0.0.0.0:5672/"

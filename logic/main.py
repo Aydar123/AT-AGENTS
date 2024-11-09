@@ -1,9 +1,16 @@
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import component_method
+import yaml
 import asyncio
 from typing import Dict
 from colorama import Fore, Style
+
+
+with open("config.yaml", "r") as config_file:
+    config = yaml.safe_load(config_file)
+
+connection_url = config["connection"]["url"]
 
 AGENTS = {
     'agent1': {
@@ -213,7 +220,7 @@ class InteractionComponent(ATComponent):
 async def main():
     # ------- служебная инициализация компонента --------
     # print("OK 1")
-    connection_parameters = ConnectionParameters('amqp://0.0.0.0:5672/')  # Параметры подключения к RabbitMQ
+    connection_parameters = ConnectionParameters(connection_url)  # Параметры подключения к RabbitMQ
 
     # print("OK 2")
 

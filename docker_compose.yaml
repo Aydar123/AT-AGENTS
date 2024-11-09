@@ -1,0 +1,103 @@
+version: '3.9'
+
+x-prototype: &prototype
+  build:
+    context: .
+    dockerfile: /package/agent_prototype/Dockerfile
+  volumes:
+    - ./package/src:/package/src
+
+services:
+
+  rabbit:
+    image: rabbitmq:management
+    container_name: rabbit_at_parking
+    ports:
+      - 5672:5672
+      - 15672:15672
+    expose:
+      - 15672
+    healthcheck:
+      test: rabbitmq-diagnostics check_port_connectivity
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  queue:
+    <<: *prototype
+    container_name: queue
+    command: poetry run python -m at_queue -H rabbit
+    depends_on:
+      rabbit:
+        condition: service_healthy
+    healthcheck:
+      test: ps -p $(cat /var/run/at_queue/pidfile.pid) || exit 1
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  solver:
+    <<: *prototype
+    container_name: solver
+    command: poetry run python -m at_solver -H rabbit
+    depends_on:
+      queue:
+        condition: service_healthy
+    healthcheck:
+      test: ps -p $(cat /var/run/at_solver/pidfile.pid) || exit 1
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  temporal_solver:
+    <<: *prototype
+    container_name: temporal_solver
+    command: poetry run python -m at_temporal_solver -H rabbit
+    depends_on:
+      queue:
+        condition: service_healthy
+    healthcheck:
+      test: ps -p $(cat /var/run/at_temporal_solver/pidfile.pid) || exit 1
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  blackboard:
+    <<: *prototype
+    container_name: blackboard
+    command: poetry run python -m at_blackboard -H rabbit
+    depends_on:
+      queue:
+        condition: service_healthy
+    healthcheck:
+      test: ps -p $(cat /var/run/at_blackboard/pidfile.pid) || exit 1
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  planner:
+    <<: *prototype
+    container_name: planner
+    command: poetry run python logic/planner/ATAgentPlanner.py rabbit -c /package/src/config.yaml
+    depends_on:
+      queue:
+        condition: service_healthy
+    healthcheck:
+      test: ps -p $(cat /var/run/planner/pidfile.pid) || exit 1
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  interaction_component:
+    <<: *prototype
+    container_name: interaction_component
+    command: poetry run python /logic/main.py rabbit -c /package/src/config.yaml
+    depends_on:
+      solver:
+        condition: service_healthy
+      temporal_solver:
+        condition: service_healthy
+      blackboard:
+        condition: service_healthy
+      planner:
+        condition: service_healthy
