@@ -25,7 +25,7 @@ services:
 
   queue:
     <<: *prototype
-    container_name: queue
+    container_name: queue_at_parking
     command: poetry run python -m at_queue -H rabbit
     depends_on:
       rabbit:
@@ -38,7 +38,7 @@ services:
 
   solver:
     <<: *prototype
-    container_name: solver
+    container_name: solver_at_parking
     command: poetry run python -m at_solver -H rabbit
     depends_on:
       queue:
@@ -51,7 +51,7 @@ services:
 
   temporal_solver:
     <<: *prototype
-    container_name: temporal_solver
+    container_name: temporal_solver_at_parking
     command: poetry run python -m at_temporal_solver -H rabbit
     depends_on:
       queue:
@@ -64,7 +64,7 @@ services:
 
   blackboard:
     <<: *prototype
-    container_name: blackboard
+    container_name: blackboard_at_parking
     command: poetry run python -m at_blackboard -H rabbit
     depends_on:
       queue:
@@ -77,8 +77,8 @@ services:
 
   planner:
     <<: *prototype
-    container_name: planner
-    command: poetry run python logic/planner/ATAgentPlanner.py rabbit -c /package/src/config.yaml
+    container_name: planner_at_parking
+    command: poetry run python /logic/planner/ATAgentPlanner.py rabbit -c /package/src/config.yaml
     depends_on:
       queue:
         condition: service_healthy
@@ -90,7 +90,7 @@ services:
 
   interaction_component:
     <<: *prototype
-    container_name: interaction_component
+    container_name: interaction_component_at_parking
     command: poetry run python /logic/main.py rabbit -c /package/src/config.yaml
     depends_on:
       solver:
