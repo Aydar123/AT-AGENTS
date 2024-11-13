@@ -78,7 +78,7 @@ services:
   planner:
     <<: *prototype
     container_name: planner_at_parking
-    command: poetry run python ./logic/planner/ATAgentPlanner.py rabbit -c ./package/src/config.yaml
+    command: poetry run python logic/planner/ATAgentPlanner.py rabbit -c /package/src/config.yaml
     depends_on:
       queue:
         condition: service_healthy
@@ -92,7 +92,7 @@ services:
   interaction_component:
     <<: *prototype
     container_name: interaction_component_at_parking
-    command: poetry run python ./logic/main.py rabbit -c ./package/src/config.yaml
+    command: poetry run python logic/main.py rabbit -c /package/src/config.yaml
     depends_on:
       solver:
         condition: service_healthy
@@ -106,7 +106,7 @@ services:
   web_debugger:
     <<: *prototype
     container_name: web_debugger
-    command: poetry run python ./main.py --debugger -H rabbit -dh 0.0.0.0
+    command: poetry run python ./main.py
     depends_on:
       interaction_component:
         condition: service_healthy
@@ -119,9 +119,9 @@ services:
   nginx:
     build: ./package/nginx
     ports:
-      - 8000:8000
+      - 5050:5050
     depends_on:
       web_debugger:
         condition: service_healthy
     expose:
-      - 8000
+      - 5050

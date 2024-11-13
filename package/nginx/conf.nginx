@@ -1,10 +1,10 @@
 upstream at_agents_web_dbg{
-    server web_debugger:8000;
+    server web_debugger:5050;
 }
 
 server {
 
-    listen 8000;
+    listen 5050;
 
     location / {
         proxy_pass http://at_agents_web_dbg;
