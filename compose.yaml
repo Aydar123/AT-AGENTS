@@ -102,3 +102,26 @@ services:
         condition: service_healthy
       planner:
         condition: service_healthy
+
+  web_debugger:
+    <<: *prototype
+    container_name: web_debugger
+    command: poetry run python ./main.py --debugger -H rabbit -dh 0.0.0.0
+    depends_on:
+      interaction_component:
+        condition: service_healthy
+    healthcheck:
+      test: "ps -p $$(cat /var/run/web_main/pidfile.pid) || exit 1"
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
+  nginx:
+    build: ./package/nginx
+    ports:
+      - 8000:8000
+    depends_on:
+      web_debugger:
+        condition: service_healthy
+    expose:
+      - 8000

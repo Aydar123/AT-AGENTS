@@ -7,6 +7,7 @@ import datetime
 import subprocess
 from flask_socketio import SocketIO
 import time
+import os
 
 # from logic.main import pause_output
 
@@ -168,5 +169,11 @@ def handle_run_script():
 
 
 if __name__ == '__main__':
+    if not os.path.exists('/var/run/web_main/'):
+        os.makedirs('/var/run/web_main/')
+
+    with open('/var/run/web_main/pidfile.pid', 'w') as f:
+        f.write(str(os.getpid()))
+
     socketio.run(app, debug=True, port=5050)
     # app.run(port="5050", debug=True)
