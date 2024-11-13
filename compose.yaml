@@ -31,7 +31,7 @@ services:
       rabbit:
         condition: service_healthy
     healthcheck:
-      test: ps -p $(cat /var/run/at_queue/pidfile.pid) || exit 1
+      test: "ps -p $$(cat /var/run/at_queue/pidfile.pid) || exit 1"
       interval: 1s
       timeout: 3s
       retries: 30
@@ -44,7 +44,7 @@ services:
       queue:
         condition: service_healthy
     healthcheck:
-      test: ps -p $(cat /var/run/at_solver/pidfile.pid) || exit 1
+      test: "ps -p $$(cat /var/run/at_solver/pidfile.pid) || exit 1"
       interval: 1s
       timeout: 3s
       retries: 30
@@ -57,7 +57,7 @@ services:
       queue:
         condition: service_healthy
     healthcheck:
-      test: ps -p $(cat /var/run/at_temporal_solver/pidfile.pid) || exit 1
+      test: "ps -p $$(cat /var/run/at_temporal_solver/pidfile.pid) || exit 1"
       interval: 1s
       timeout: 3s
       retries: 30
@@ -70,7 +70,7 @@ services:
       queue:
         condition: service_healthy
     healthcheck:
-      test: ps -p $(cat /var/run/at_blackboard/pidfile.pid) || exit 1
+      test: "ps -p $$(cat /var/run/at_blackboard/pidfile.pid) || exit 1"
       interval: 1s
       timeout: 3s
       retries: 30
@@ -83,7 +83,8 @@ services:
       queue:
         condition: service_healthy
     healthcheck:
-      test: ps -p $(cat /var/run/planner/pidfile.pid) || exit 1
+      # test: "ps -p $$(cat /var/run/planner/pidfile.pid) || exit 1"
+      test: ["CMD", "pgrep", "-f", "python /logic/planner/ATAgentPlanner.py"]
       interval: 1s
       timeout: 3s
       retries: 30
