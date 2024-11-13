@@ -9,7 +9,6 @@ RUN apt-get update && apt-get install -y procps
 COPY pyproject.toml .
 COPY data .
 COPY logic .
-COPY package/src package/src
 COPY static .
 COPY templates .
 COPY data.py .
