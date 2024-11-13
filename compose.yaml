@@ -3,7 +3,7 @@ version: '3.9'
 x-prototype: &prototype
   build:
     context: .
-    dockerfile: /package/agent_prototype/Dockerfile
+    dockerfile: ./package/agent_prototype/Dockerfile
   volumes:
     - ./package/src:/package/src
 
