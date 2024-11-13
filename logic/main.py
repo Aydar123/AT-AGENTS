@@ -7,7 +7,7 @@ from typing import Dict
 from colorama import Fore, Style
 
 
-with open("./package/src/config.yaml", "r") as config_file:
+with open("package/src/config.yaml", "r") as config_file:
     config = yaml.safe_load(config_file)
 
 connection_url = config["connection"]["url"]
