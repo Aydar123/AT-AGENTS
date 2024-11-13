@@ -102,6 +102,11 @@ services:
         condition: service_healthy
       planner:
         condition: service_healthy
+    healthcheck:
+      test: "ps -p $$(cat /var/run/interaction_component/pidfile.pid) || exit 1"
+      interval: 1s
+      timeout: 3s
+      retries: 30
 
   web_debugger:
     <<: *prototype

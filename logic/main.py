@@ -1,6 +1,7 @@
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import component_method
+import os
 import yaml
 import asyncio
 from typing import Dict
@@ -227,6 +228,12 @@ async def main():
     interaction_component = InteractionComponent(connection_parameters=connection_parameters)  # Создание компонента
     await interaction_component.initialize()  # Подключение компонента к RabbitMQ
     await interaction_component.register()  # Отправка сообщения на регистрацию в брокер
+
+    if not os.path.exists('/var/run/interaction_component/'):
+        os.makedirs('/var/run/interaction_component/')
+
+    with open('/var/run/interaction_component/pidfile.pid', 'w') as f:
+        f.write(str(os.getpid()))
 
     # print("OK 3")
 
