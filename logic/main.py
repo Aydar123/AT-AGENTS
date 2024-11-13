@@ -15,28 +15,28 @@ connection_url = config["connection"]["url"]
 AGENTS = {
     'agent1': {
         'ATSolver': {
-            'kb': {'path': 'package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
+            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
         },
         'ATTemporalSolver': {
-            'kb': {'path': 'package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
+            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
         },
         'ATSimulationSubsystem': {}
     },
     'agent2': {
         'ATSolver': {
-            'kb': {'path': 'package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
+            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
         },
         'ATTemporalSolver': {
-            'kb': {'path': 'package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
+            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
         },
         'ATSimulationSubsystem': {}
     },
     'agent3': {
         'ATSolver': {
-            'kb': {'path': 'package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
+            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
         },
         'ATTemporalSolver': {
-            'kb': {'path': 'package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
+            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
         },
         'ATSimulationSubsystem': {}
     },
