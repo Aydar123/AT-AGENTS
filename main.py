@@ -9,6 +9,10 @@ from flask_socketio import SocketIO
 import time
 import os
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 # from logic.main import pause_output
 
 
@@ -154,14 +158,20 @@ def index():
 
 
 @socketio.on('run_script')
-def handle_run_script():
+async def handle_run_script():
     try:
         # Запускаем скрипт и захватываем вывод построчно
-        process = subprocess.Popen(['python3', 'logic/main.py'], stdout=subprocess.PIPE, text=True)
+        process = subprocess.Popen(['python3', './logic/main.py'], stdout=subprocess.PIPE, text=True)
 
         # Чтение вывода по одной строке и отправка данных на клиент
+
+        logger.info('---------------ВЫВОД РЕЗУЛЬТАТОВ-----------------')
+        # result = await interaction_component.interact_once()
+        # for something in result ....
         for line in iter(process.stdout.readline, ''):
-            socketio.emit('console_output', line.strip())  # Отправляем на клиент
+            output = line.strip()
+            logger.info(output)
+            socketio.emit('console_output', output)  # Отправляем на клиент
             time.sleep(0.1)  # Имитируем задержку для наглядности
         process.stdout.close()
     except Exception as e:
@@ -169,11 +179,12 @@ def handle_run_script():
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     if not os.path.exists('/var/run/web_main/'):
         os.makedirs('/var/run/web_main/')
 
     with open('/var/run/web_main/pidfile.pid', 'w') as f:
         f.write(str(os.getpid()))
 
-    socketio.run(app, debug=True, port=5050)
+    socketio.run(app, debug=True, port=5050, host="0.0.0.0")
     # app.run(port="5050", debug=True)

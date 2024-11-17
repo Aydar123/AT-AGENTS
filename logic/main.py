@@ -6,6 +6,9 @@ import yaml
 import asyncio
 from typing import Dict
 from colorama import Fore, Style
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 with open("/package/src/config.yaml", "r") as config_file:
@@ -181,21 +184,21 @@ class InteractionComponent(ATComponent):
             auth_token=agent
         )
 
-        print(f'-------------------------АТ-Решатель-------------------------')
+        logger.info(f'-------------------------АТ-Решатель-------------------------')
 
-        print(f'\nРабочая память:{solver_result}\n')
-        print(f'Результат решателя:')
+        logger.info(f'\nРабочая память:{solver_result}\n')
+        logger.info(f'Результат решателя:')
 
         # напечатаем результат решателя
         for key, wm_item in solver_result.get('wm', {}).items():
-            print(key, wm_item)
+            logger.info(key, wm_item)
 
         # пусть цели у нас хранятся в объекте Цели_Агента в его атрибуте "Цель"
         key = 'Цели_агента.Цель'
         goal_item = solver_result['wm'][key]
 
         goal = goal_item['content']
-        print(f'\nТаким образом, цель которую необходимо выполнить: {goal}\n')
+        logger.info(f'\nТаким образом, цель которую необходимо выполнить: {goal}\n')
 
         # # отправляем цель планировщику
         # # пусть у планировщика будет метод process_agent_goal
@@ -213,17 +216,18 @@ class InteractionComponent(ATComponent):
         )
 
         # pause_output()
-        print(f'-------------------------Планировщик-------------------------')
-        print(f"{serialized_plan}")
+        logger.info(f'-------------------------Планировщик-------------------------')
+        logger.info(f"{serialized_plan}")
+        return {}
 
 
 # пример использования компонента
 async def main():
     # ------- служебная инициализация компонента --------
-    # print("OK 1")
+    # logger.info("OK 1")
     connection_parameters = ConnectionParameters(connection_url)  # Параметры подключения к RabbitMQ
 
-    # print("OK 2")
+    # logger.info("OK 2")
 
     interaction_component = InteractionComponent(connection_parameters=connection_parameters)  # Создание компонента
     await interaction_component.initialize()  # Подключение компонента к RabbitMQ
@@ -235,7 +239,7 @@ async def main():
     with open('/var/run/interaction_component/pidfile.pid', 'w') as f:
         f.write(str(os.getpid()))
 
-    # print("OK 3")
+    # logger.info("OK 3")
 
     # Запуск в режиме ожидания сообщений, не блокируя выполнение
     loop = asyncio.get_event_loop()
@@ -247,25 +251,26 @@ async def main():
     # ------------------------
     # ------------------------
 
-    # print("OK 4")
+    # logger.info("OK 4")
 
     # конфигурирование компонентов для агентов
     await interaction_component.configure_components(agents=AGENTS)
 
-    # print("OK 5")
+    # logger.info("OK 5")
 
     # Вызов в один раз для примера для одного агента
     agent = 'agent1'
     await interaction_component.interact_once(agent=agent)
 
-    # print("OK 6")
+    # logger.info("OK 6")
     # Это можно выполнять в цикле для разных агентов и в разных моментах времени
 
     # Ожидание завершения
     await task
 
-    print("OK 7")
+    logger.info("OK 7")
 
 
 if __name__ == '__main__':
+    logging.basicConfig(level=logging.INFO)
     asyncio.run(main())
