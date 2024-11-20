@@ -20,6 +20,8 @@ at-queue = {git = "https://github.com/grigandal625/AT_QUEUE.git", rev = "master"
 at-solver = {git = "https://github.com/grigandal625/AT_SOLVER.git", rev = "master"}
 at-temporal-solver = {git = "https://github.com/grigandal625/AT_TEMPORAL_SOLVER.git", rev = "master"}
 at-blackboard = {git = "https://github.com/grigandal625/AT_BLACKBOARD.git", rev = "master"}
+uvicorn = "^0.32.0"
+asgiref = "^3.8.1"
 
 
 [build-system]

@@ -7,6 +7,10 @@ import asyncio
 from typing import Dict
 from colorama import Fore, Style
 import logging
+# from package.src.agents_config.AGENTS import AGENTS
+import json
+
+AGENTS = json.load(open('/package/src/agents_config/AGENTS.json'))
 
 logger = logging.getLogger(__name__)
 
@@ -15,39 +19,6 @@ with open("/package/src/config.yaml", "r") as config_file:
     config = yaml.safe_load(config_file)
 
 connection_url = config["connection"]["url"]
-
-AGENTS = {
-    'agent1': {
-        'ATSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATTemporalSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATSimulationSubsystem': {}
-    },
-    'agent2': {
-        'ATSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATTemporalSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATSimulationSubsystem': {}
-    },
-    'agent3': {
-        'ATSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATTemporalSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATSimulationSubsystem': {}
-    },
-}
-
-# def pause_output():
-#     input("Нажмите 'Запустить Планировщик'...")
 
 class InteractionComponent(ATComponent):
 
@@ -58,9 +29,10 @@ class InteractionComponent(ATComponent):
 
     async def configure_at_solver(self, agent: str):
         # Проверка, что решатель доступен
+        logger.info("Checking solver registered")
         if not await self.check_external_registered('ATSolver'):
             raise ReferenceError(f'Component "ATSolver" is not registered')
-
+        logger.info('Configuring solver')
         # загружаем бз в Решатель
         config = AGENTS[agent]['ATSolver']
         await self.session.send_await('ATSolver', message={
@@ -101,17 +73,25 @@ class InteractionComponent(ATComponent):
         ]
 
     @component_method
-    async def configure_components(self, agents: Dict) -> int:
+    async def configure_components(self, agents: Dict):
+        logger.info('Configuring agents')
         for agent in agents:
+            logger.info(f'Configuring agent {agent}')
             await self.configure_at_solver(agent)
+            logger.info(f'{agent} solver done')
             await self.configure_at_temporal_solver(agent)
+            logger.info(f'{agent} t.solver done')
             await self.configure_simulation_subsystem(agent)
+            logger.info(f'{agent} simulation done')
             await self.configure_agent_planner(agent)
+            logger.info(f'{agent} planner done')
+            logger.info(f'Finished configuring agent {agent}')
 
     @component_method
     async def interact_once(self, agent: str):
         # Вызов подсистемы имитационного моделирования, но она пока не реализована,
         # поэтому просто используем моковые данные
+        logger.info('Starting interaction')
         simulation_result = [
             {'ref': 'Парковка.Процент_заполнения', 'value': '27'},
             {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_парковку'},
@@ -132,6 +112,8 @@ class InteractionComponent(ATComponent):
             auth_token=agent
         )
 
+        logger.info('Blackboard updated')
+
         # обновление рабочей памяти для темпорального решателя
         await self.exec_external_method(
             'ATTemporalSolver',
@@ -140,6 +122,8 @@ class InteractionComponent(ATComponent):
             auth_token=agent
         )
 
+        logger.info('Temporal solver WM updated')
+
         # Запуск темпорального решателя
         temporal_result = await self.exec_external_method(
             'ATTemporalSolver',
@@ -147,6 +131,8 @@ class InteractionComponent(ATComponent):
             {},
             auth_token=agent
         )
+
+        logger.info('Temporal solver processed')
 
         # Обновление общей рабочей памяти результатом работы темпорального решателя
         temporal_items = [{'ref': key, 'value': value}
@@ -158,6 +144,8 @@ class InteractionComponent(ATComponent):
             auth_token=agent
         )
 
+        logger.info('Blackboard updated with t.solver result')
+
         # Обновление рабочей памяти решателя
         await self.exec_external_method(
             'ATSolver',
@@ -166,6 +154,8 @@ class InteractionComponent(ATComponent):
             auth_token=agent
         )
 
+        logger.info('Solver WM updated')
+
         # Запуск решателя
         solver_result = await self.exec_external_method(
             'ATSolver',
@@ -173,6 +163,8 @@ class InteractionComponent(ATComponent):
             {},
             auth_token=agent
         )
+
+        logger.info('Solver made inference')
 
         # Обновление общей рабочей памяти результатом решателя
         solver_items = self._items_from_solver_result(solver_result)
@@ -183,6 +175,8 @@ class InteractionComponent(ATComponent):
             {'items': solver_items},
             auth_token=agent
         )
+
+        logger.info('BB updated with solver result')
 
         logger.info(f'-------------------------АТ-Решатель-------------------------')
 
@@ -218,7 +212,12 @@ class InteractionComponent(ATComponent):
         # pause_output()
         logger.info(f'-------------------------Планировщик-------------------------')
         logger.info(f"{serialized_plan}")
-        return {}
+        return {
+            'solver_result': solver_result,
+            'wm_items': solver_result.get('wm', {}),
+            'goal': goal,
+            'serialized_plan': serialized_plan
+        }
 
 
 # пример использования компонента
