@@ -1,0 +1,64 @@
+{
+  "HLA": [
+    "Go(Home, Parking)",
+    "Driver(Home, r555)",
+    "Driver(r555, Parking)",
+    "Go(Home, Alt)",
+    "Driver(Home, r555)",
+    "Driver(r555, Alt)"
+  ],
+  "steps": [
+    [
+      "Driver(Home, r555)",
+      "Driver(r555, Parking)"
+    ],
+    [],
+    [],
+    [
+      "Driver(Home, r555)",
+      "Driver(r555, Alt)"
+    ],
+    [],
+    []
+  ],
+  "precond": [
+    [
+      "At(Home)"
+    ],
+    [
+      "At(Home)"
+    ],
+    [
+      "At(r555)"
+    ],
+    [
+      "At(Home)"
+    ],
+    [
+      "At(Home)"
+    ],
+    [
+      "At(r555)"
+    ]
+  ],
+  "effect": [
+    [
+      "At(Parking) & ~At(Home)"
+    ],
+    [
+      "At(r555) & ~At(Home)"
+    ],
+    [
+      "At(Parking) & ~At(r555)"
+    ],
+    [
+      "At(Alt) & ~At(Home)"
+    ],
+    [
+      "At(r555) & ~At(Home)"
+    ],
+    [
+      "At(Alt) & ~At(r555)"
+    ]
+  ]
+}

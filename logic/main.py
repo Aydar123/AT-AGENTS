@@ -1,53 +1,21 @@
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
 from at_queue.utils.decorators import component_method
-import os
 import yaml
 import asyncio
 from typing import Dict
-from colorama import Fore, Style
 import logging
+
+import json
+AGENTS = json.load(open('./package/src/agents_config/AGENTS.json'))
 
 logger = logging.getLogger(__name__)
 
 
-with open("/package/src/config.yaml", "r") as config_file:
+with open("./package/src/config.yaml", "r") as config_file:
     config = yaml.safe_load(config_file)
 
 connection_url = config["connection"]["url"]
-
-AGENTS = {
-    'agent1': {
-        'ATSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATTemporalSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATSimulationSubsystem': {}
-    },
-    'agent2': {
-        'ATSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATTemporalSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATSimulationSubsystem': {}
-    },
-    'agent3': {
-        'ATSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATTemporalSolver': {
-            'kb': {'path': '/package/src/agents_config/Kutdusov_parking_kb_v3_2.xml'}
-        },
-        'ATSimulationSubsystem': {}
-    },
-}
-
-# def pause_output():
-#     input("Нажмите 'Запустить Планировщик'...")
 
 class InteractionComponent(ATComponent):
 
@@ -101,7 +69,8 @@ class InteractionComponent(ATComponent):
         ]
 
     @component_method
-    async def configure_components(self, agents: Dict) -> int:
+    # async def configure_components(self, agents: Dict) -> int:
+    async def configure_components(self, agents: Dict):
         for agent in agents:
             await self.configure_at_solver(agent)
             await self.configure_at_temporal_solver(agent)
@@ -218,7 +187,13 @@ class InteractionComponent(ATComponent):
         # pause_output()
         logger.info(f'-------------------------Планировщик-------------------------')
         logger.info(f"{serialized_plan}")
-        return {}
+
+        return {
+            'solver_result': solver_result,
+            'wm_items': solver_result.get('wm', {}),
+            'goal': goal,
+            'serialized_plan': serialized_plan
+        }
 
 
 # пример использования компонента
@@ -233,11 +208,11 @@ async def main():
     await interaction_component.initialize()  # Подключение компонента к RabbitMQ
     await interaction_component.register()  # Отправка сообщения на регистрацию в брокер
 
-    if not os.path.exists('/var/run/interaction_component/'):
-        os.makedirs('/var/run/interaction_component/')
-
-    with open('/var/run/interaction_component/pidfile.pid', 'w') as f:
-        f.write(str(os.getpid()))
+    # if not os.path.exists('/var/run/interaction_component/'):
+    #     os.makedirs('/var/run/interaction_component/')
+    #
+    # with open('/var/run/interaction_component/pidfile.pid', 'w') as f:
+    #     f.write(str(os.getpid()))
 
     # logger.info("OK 3")
 

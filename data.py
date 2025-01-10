@@ -1,7 +1,6 @@
 import json
 import uuid
 
-
 data = []
 try:
     with open('data/data.json', 'r') as file:
@@ -89,3 +88,56 @@ def delete_agent_name(mail, id):
                 if l['id'] == id:
                     d['agents_list'].remove(l)
                     save_data()
+
+def generate_precond_effect(hla_action):
+    if hla_action is None:
+        raise ValueError("hla_action is None. Ensure it is correctly passed and initialized.")
+
+    # Проверяем, что строка в правильном формате
+    if not (hla_action.startswith("Go(") and hla_action.endswith(")")):
+        raise ValueError(f"Invalid format for hla_action: {hla_action}. Expected format 'Go(param1, param2)'.")
+
+    params = hla_action[3:-1].split(", ")
+    if len(params) != 2:
+        raise ValueError(f"Invalid number of parameters in hla_action: {hla_action}. Expected 2 parameters.")
+
+    precond = f"At({params[0]})"
+    effect = f"At({params[1]}) & ~At({params[0]})"
+
+    return precond, effect
+
+
+def create_planning_base(planning_base, hla_action, steps):
+    # planning_base = {'HLA': [], 'steps': [], 'precond': [], 'effect': []}
+
+    if not isinstance(planning_base, dict):
+        raise TypeError("planning_base must be a dictionary.")
+    if hla_action is None:
+        raise ValueError("hla_action cannot be None.")
+    if not isinstance(steps, list):
+        raise TypeError("steps must be a list.")
+
+    # Генерируем предусловия и эффекты для HLA
+    precond, effect = generate_precond_effect(hla_action)
+    planning_base['HLA'].append(hla_action)
+    planning_base['steps'].append(steps)
+    planning_base['precond'].append([precond])
+    planning_base['effect'].append([effect])
+
+    # Обрабатываем шаги
+    for step in steps:
+        if not (step.startswith("Driver(") and step.endswith(")")):
+            raise ValueError(f"Invalid format for step: {step}. Expected format 'Driver(param1, param2)'.")
+
+        step_params = step[7:-1].split(", ")
+        if len(step_params) != 2:
+            raise ValueError(f"Invalid number of parameters in step: {step}. Expected 2 parameters.")
+
+        step_precond = f"At({step_params[0]})"
+        step_effect = f"At({step_params[1]}) & ~At({step_params[0]})"
+        planning_base['HLA'].append(step)
+        planning_base['precond'].append([step_precond])
+        planning_base['effect'].append([step_effect])
+        planning_base['steps'].append([])
+
+    return planning_base

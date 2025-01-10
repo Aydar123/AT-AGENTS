@@ -1,2 +1,2 @@
 connection:
-  url: "amqp://rabbit:5672/"
+  url: "amqp://0.0.0.0:5672/"

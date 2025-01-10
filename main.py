@@ -1,24 +1,26 @@
-import eventlet
-eventlet.monkey_patch()
-
 from flask import *
 from data import *
 import datetime
-import subprocess
-from flask_socketio import SocketIO
-import time
-import os
-
+import yaml
+from logic.main import InteractionComponent
+from at_queue.core.session import ConnectionParameters
+import asyncio
 import logging
+from asgiref.wsgi import WsgiToAsgi
+from uvicorn import Config, Server
+from typing import Optional
+
+AGENTS = json.load(open('./package/src/agents_config/AGENTS.json'))
 
 logger = logging.getLogger(__name__)
 
-# from logic.main import pause_output
-
+with open("./package/src/config.yaml", "r") as config_file:
+    config = yaml.safe_load(config_file)
+connection_url = config["connection"]["url"]
 
 app = Flask(__name__)
 app.secret_key = "SECRET_KEY"
-socketio = SocketIO(app)
+# socketio = SocketIO(app)
 
 @app.route('/')
 def main_root():
@@ -157,34 +159,125 @@ def index():
     return render_template('at_solver.html')
 
 
-@socketio.on('run_script')
-async def handle_run_script():
+@app.route('/editor', methods=['GET'])
+def get_editors():
+    return render_template('base_editor.html')
+
+
+@app.route('/editor', methods=['POST'])
+def add_hla():
     try:
-        # Запускаем скрипт и захватываем вывод построчно
-        process = subprocess.Popen(['python3', './logic/main.py'], stdout=subprocess.PIPE, text=True)
+        planning_base = {'HLA': [], 'steps': [], 'precond': [], 'effect': []}
 
-        # Чтение вывода по одной строке и отправка данных на клиент
+        # Получаем HLA переменные
+        hla_var1 = request.form.getlist('hla_var1[]')  # Список значений для переменной 1
+        hla_var2 = request.form.getlist('hla_var2[]')  # Список значений для переменной 2
 
-        logger.info('---------------ВЫВОД РЕЗУЛЬТАТОВ-----------------')
-        # result = await interaction_component.interact_once()
-        # for something in result ....
-        for line in iter(process.stdout.readline, ''):
-            output = line.strip()
-            logger.info(output)
-            socketio.emit('console_output', output)  # Отправляем на клиент
-            time.sleep(0.1)  # Имитируем задержку для наглядности
-        process.stdout.close()
+        # Собираем шаги
+        steps = []
+        for i in range(len(hla_var1)):  # Для каждого блока HLA
+            step_var1 = request.form.getlist(f'step_var1_{i + 1}[]')  # Переменная шагов 1
+            step_var2 = request.form.getlist(f'step_var2_{i + 1}[]')  # Переменная шагов 2
+            steps.append({'step_var1': step_var1, 'step_var2': step_var2})
+
+        # Проверяем заполненность данных
+        if not hla_var1 or not hla_var2 or not steps:
+            return jsonify({'error': 'Не все данные заполнены.'}), 400
+
+        # Создаем список HLA-операций
+        hla_actions = [f"Go({var1}, {var2})" for var1, var2 in zip(hla_var1, hla_var2)]
+
+        # Обрабатываем шаги для каждой HLA-операции
+        for i, hla_action in enumerate(hla_actions):
+            # Формируем formatted_steps для текущего HLA
+            step_group = steps[i]  # Берем шаги, соответствующие текущей HLA-операции
+            formatted_steps = [
+                f"Driver({var1}, {var2})"
+                for var1, var2 in zip(step_group['step_var1'], step_group['step_var2'])
+            ]
+
+            create_planning_base(planning_base, hla_action, formatted_steps)
+
+        # Сохраняем обновленный planning_base
+        save_path = "./package/src/planning_base/planning_base.json"
+        with open(save_path, 'w') as f:
+            json.dump(planning_base, f, indent=2)
+
+        return jsonify({'message': 'Planning base successful created', 'planning_base': planning_base}), 200
+
     except Exception as e:
-        socketio.emit('console_output', f"Ошибка: {str(e)}")
+        print(f"Error in add_hla: {e}")
+        return jsonify({'error': f'Ошибка при обработке запроса: {str(e)}'}), 500
+
+
+# --------------------------------------------------
+# Глобальная переменная для хранения инициализированного компонента
+interaction_component: Optional[InteractionComponent] = None
+
+
+@app.route('/api/results', methods=['GET'])
+async def get_results():
+    """
+    Возвращает результаты работы interact_once.
+    """
+    # restart_at_agent_planner_component()
+
+    global interaction_component
+    if interaction_component is None:
+        return jsonify({"error": "Results not yet available"}), 425
+    if not interaction_component.registered:
+        return jsonify({"error": "Results not yet registered"}), 425
+
+    await interaction_component.configure_components(agents=AGENTS)  # Укажите ваших агентов
+    logger.info('Component loaded agents')
+    # Выполнение interact_once и сохранение результата
+    agent = 'agent1'
+    logger.info('Starting interaction component interact_once')
+    results_cache = await interaction_component.interact_once(agent=agent)
+    logger.info(results_cache)
+    print(f"Results cache updated: {results_cache}")
+
+    if results_cache:
+        return jsonify(results_cache)
+    return jsonify({"error": "Results not yet available"}), 404
+
+async def main():
+    logger.info('Starting')
+    host="0.0.0.0"
+    # Run the app with the custom loop
+    config = Config(WsgiToAsgi(app), host=host, port=5050, log_level="info")
+    server = Server(config)
+
+    connection_parameters = ConnectionParameters(connection_url)
+    global interaction_component
+    interaction_component = InteractionComponent(connection_parameters=connection_parameters)
+
+    await interaction_component.initialize()
+    logger.info('Component initialized')
+    await interaction_component.register()
+    logger.info('Component registered')
+
+    # Запуск в режиме ожидания сообщений, не блокируя выполнение
+    loop = asyncio.get_event_loop()
+    task = loop.create_task(interaction_component.start())
+    logger.info('Component started')
+    logger.info(f"Starting server at: {host}:5050")
+    await server.serve()
+    await task
+
 
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
-    if not os.path.exists('/var/run/web_main/'):
-        os.makedirs('/var/run/web_main/')
+    # if not os.path.exists('/var/run/web_main/'):
+    #     os.makedirs('/var/run/web_main/')
+    #
+    # with open('/var/run/web_main/pidfile.pid', 'w') as f:
+    #     f.write(str(os.getpid()))
 
-    with open('/var/run/web_main/pidfile.pid', 'w') as f:
-        f.write(str(os.getpid()))
+    asyncio.run(main())
 
-    socketio.run(app, debug=True, port=5050, host="0.0.0.0")
-    # app.run(port="5050", debug=True)
+
+
+
+
