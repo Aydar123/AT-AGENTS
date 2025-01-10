@@ -9,7 +9,7 @@ RUN apt-get update && apt-get install -y procps
 COPY pyproject.toml .
 
 RUN pip install poetry
-RUN poetry install
+RUN poetry install --no-root
 
 COPY data ./data
 COPY logic ./logic

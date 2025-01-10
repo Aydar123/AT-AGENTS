@@ -10,7 +10,7 @@
 
 <div class="container mt-5">
     <div>
-        <h2>Входные данные</h2>
+        <h2>Загрузка исходных данных</h2>
         <p class="lead">
             Поэтапно выполните ниже указанные действия для создания интеллектуального агента
         </p>
@@ -42,7 +42,7 @@
                 </div>
                 <hr>
                 <div class="btn-group w-100 rounded-4 mb-1" role="group" >
-                    <a href="http://185.17.141.230:8787/" type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
+                    <a href="http://45.148.245.134:8787/" type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
                         Перейти
                     </a>
                     <a type="button" class="btn btn-outline-primary btn-sm rounded-end-4">
@@ -63,10 +63,10 @@
         <li class="list-group-item d-flex justify-content-between align-items-start">
             <div class="ms-2 me-auto">
                 <div class="fw-bold">
-                    2. Создать внешнее окружение
+                    2. Создать Модель внешнего мира
                 </div>
                 <div class="form-text">
-                    Для создания внешнего окружения перейдите в редактор с помощью кнопки "перейти" ниже
+                    Для создания модели внешнего мира перейдите в редактор с помощью кнопки "перейти" ниже
                 </div>
                 <hr>
                 <div class="btn-group w-100 rounded-4 mb-1" role="group" >
@@ -91,42 +91,14 @@
         <li class="list-group-item d-flex justify-content-between align-items-start">
             <div class="ms-2 me-auto">
                 <div class="fw-bold">
-                    3. Создать Базу Планов
+                    3. Создать Базу планов и Базу действий
                 </div>
                 <div class="form-text">
                     Для создания БП перейдите в редактор с помощью кнопки "перейти" ниже
                 </div>
                 <hr>
                 <div class="btn-group w-100 rounded-4 mb-1" role="group" >
-                    <a type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
-                        Перейти
-                    </a>
-                    <a type="button" class="btn btn-outline-primary btn-sm rounded-end-4">
-                        Загрузить
-                    </a>
-                </div>
-            </div>
-            {% if checked == True %}
-            <span class="badge text-bg-success rounded-4 small">
-                Выполнено
-            </span>
-            {% else %}
-            <span class="badge text-bg-danger rounded-4 small">
-                Не выполнено
-            </span>
-            {% endif %}
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-start">
-            <div class="ms-2 me-auto">
-                <div class="fw-bold">
-                    4. Создать Базу Действий
-                </div>
-                <div class="form-text">
-                    Для создания базы действий перейдите в редактор с помощью кнопки "перейти" ниже
-                </div>
-                <hr>
-                <div class="btn-group w-100 rounded-4 mb-1" role="group" >
-                    <a type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
+                    <a href="/editor" type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
                         Перейти
                     </a>
                     <a type="button" class="btn btn-outline-primary btn-sm rounded-end-4">

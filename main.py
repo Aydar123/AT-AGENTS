@@ -4,11 +4,9 @@ import datetime
 import os
 import yaml
 import logging
-import threading
 import asyncio
 from logic.main import InteractionComponent
 from at_queue.core.session import ConnectionParameters
-# from package.src.agents_config.AGENTS import AGENTS
 import argparse
 import json
 from asgiref.wsgi import WsgiToAsgi
@@ -163,6 +161,57 @@ def index():
     return render_template('at_solver.html')
 
 
+@app.route('/editor', methods=['GET'])
+def get_editors():
+    return render_template('base_editor.html')
+
+
+@app.route('/editor', methods=['POST'])
+def add_hla():
+    try:
+        planning_base = {'HLA': [], 'steps': [], 'precond': [], 'effect': []}
+
+        # Получаем HLA переменные
+        hla_var1 = request.form.getlist('hla_var1[]')  # Список значений для переменной 1
+        hla_var2 = request.form.getlist('hla_var2[]')  # Список значений для переменной 2
+
+        # Собираем шаги
+        steps = []
+        for i in range(len(hla_var1)):  # Для каждого блока HLA
+            step_var1 = request.form.getlist(f'step_var1_{i + 1}[]')  # Переменная шагов 1
+            step_var2 = request.form.getlist(f'step_var2_{i + 1}[]')  # Переменная шагов 2
+            steps.append({'step_var1': step_var1, 'step_var2': step_var2})
+
+        # Проверяем заполненность данных
+        if not hla_var1 or not hla_var2 or not steps:
+            return jsonify({'error': 'Не все данные заполнены.'}), 400
+
+        # Создаем список HLA-операций
+        hla_actions = [f"Go({var1}, {var2})" for var1, var2 in zip(hla_var1, hla_var2)]
+
+        # Обрабатываем шаги для каждой HLA-операции
+        for i, hla_action in enumerate(hla_actions):
+            # Формируем formatted_steps для текущего HLA
+            step_group = steps[i]  # Берем шаги, соответствующие текущей HLA-операции
+            formatted_steps = [
+                f"Driver({var1}, {var2})"
+                for var1, var2 in zip(step_group['step_var1'], step_group['step_var2'])
+            ]
+
+            create_planning_base(planning_base, hla_action, formatted_steps)
+
+        # Сохраняем обновленный planning_base
+        save_path = "/package/src/planning_base/planning_base.json"
+        with open(save_path, 'w') as f:
+            json.dump(planning_base, f, indent=2)
+
+        return jsonify({'message': 'Planning base successful created', 'planning_base': planning_base}), 200
+
+    except Exception as e:
+        print(f"Error in add_hla: {e}")
+        return jsonify({'error': f'Ошибка при обработке запроса: {str(e)}'}), 500
+
+
 # --------------------------------------------------
 # Глобальная переменная для хранения инициализированного компонента
 interaction_component: Optional[InteractionComponent] = None
@@ -228,7 +277,6 @@ async def main():
     logger.info(f"Starting server at: {host}:5050")
     await server.serve()
     await task
-
 
 
 if __name__ == '__main__':

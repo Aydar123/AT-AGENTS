@@ -1,5 +1,4 @@
 from at_queue.utils.decorators import component_method
-
 from planning import *
 from at_queue.core.at_component import ATComponent
 from at_queue.core.session import ConnectionParameters
@@ -16,113 +15,67 @@ with open("/package/src/config.yaml", "r") as config_file:
 
 connection_url = config["connection"]["url"]
 
-# База Планов
-# База планов описана с помощью языка планирования PDDL (Planning Domain Definition Language)
-planning_base = {
-    'HLA': ['Go(Home, Parking)', 'Go(Home, Alternative_Parking)',
-            'Driver1(Home, R1_start)', 'Driver1(R1_start, R1_finish)', 'Driver1(R1_finish, Queue)',
-            'Driver1(Queue, EnterParking)', 'Driver1(EnterParking, IncreaseCounter)',
-            'Driver1(IncreaseCounter, Parking)',
-
-            'Driver2(Home, R1_start)', 'Driver2(R1_start, R1_finish)', 'Driver2(R1_finish, R2_start)',
-            'Driver2(R2_start, R2_finish)', 'Driver2(R2_finish, Queue)',
-            'Driver2(Queue, EnterParking)', 'Driver2(EnterParking, IncreaseCounter)',
-            'Driver2(IncreaseCounter, Alternative_Parking)',
-            ],
-
-    'steps': [
-        # План для Go(Home, Parking)
-        ['Driver1(Home, R1_start)', 'Driver1(R1_start, R1_finish)', 'Driver1(R1_finish, Queue)',
-         'Driver1(Queue, EnterParking)', 'Driver1(EnterParking, IncreaseCounter)', 'Driver1(IncreaseCounter, Parking)'],
-        # План для Go(Home, Alternative_Parking)
-        ['Driver2(Home, R1_start)', 'Driver2(R1_start, R1_finish)', 'Driver2(R1_finish, R2_start)',
-         'Driver2(R2_start, R2_finish)', 'Driver2(R2_finish, Queue)',
-         'Driver2(Queue, EnterParking)', 'Driver2(EnterParking, IncreaseCounter)',
-         'Driver2(IncreaseCounter, Alternative_Parking)'],
-        [], [], [], [], [], [], [], [], [], [], [], [], [], []
-        ],
-
-    'precond': [
-        # Предусловия для Go(Home, Parking)
-        ['At(Home) & Have(Car)'],  # Go(Home, Parking)
-        ['At(Home) & Have(Car)'],  # Go(Home, Alternative_Parking)
-        ['At(Home)'],  # Driver1(Home, R1_start)'
-        ['At(R1_start)'],  # Driver1(R1_start, R1_finish)
-        ['At(R1_finish)'],  # Driver1(R1_finish, Queue)
-        ['At(Queue)'],  # Driver1(Queue, EnterParking)
-        ['At(EnterParking)'],  # Driver1(EnterParking, IncreaseCounter)
-        ['At(IncreaseCounter)'],  # Driver1(IncreaseCounter, Parking)
-
-        # Предусловия для Go(Home, Alternative_Parking)
-        ['At(Home)'],  # Driver2(Home, R1_start)'
-        ['At(R1_start)'],  # Driver2(R1_start, R1_finish)
-        ['At(R1_finish)'],  # Driver2(R1_finish, R2_start)
-        ['At(R2_start)'],  # Driver2(R2_start, R2_finish)
-        ['At(R2_finish)'],  # Driver2(R2_finish, Queue)
-        ['At(Queue)'],  # Driver2(Queue, EnterParking)
-        ['At(EnterParking)'],  # Driver2(EnterParking, IncreaseCounter)
-        ['At(IncreaseCounter)'],  # Driver2(IncreaseCounter, Alternative_Parking)
-    ],
-
-    'effect': [
-        # Эффекты для Go(Home, Parking)
-        ['At(Parking) & ~At(Home)'],
-        ['At(Alternative_Parking) & ~At(Home)'],
-        ['At(R1_start) & ~At(Home)'],  # Driver1(Home, R1_start)
-        ['At(R1_finish) & ~At(R1_start)'],  # Driver1(R1_start, R1_finish)
-        ['At(Queue) & ~At(R1_finish)'],  # Driver1(R1_finish, Queue)
-        ['At(EnterParking) & ~At(Queue)'],  # Driver1(Queue, EnterParking)
-        ['At(IncreaseCounter) & ~At(EnterParking)'],  # Driver1(EnterParking, IncreaseCounter)
-        ['At(Parking) & ~At(IncreaseCounter)'],  # Driver1(IncreaseCounter, Parking)
-
-        # Эффекты для Go(Home, Alternative_Parking)
-        ['At(R1_start) & ~At(Home)'],  # Driver2(Home, R1_start)
-        ['At(R1_finish) & ~At(R1_start)'],  # Driver2(R1_start, R1_finish)
-        ['At(R2_start) & ~At(R1_finish)'],  # Driver2(R1_finish, R2_start)
-        ['At(R2_finish) & ~At(R2_start)'],  # Driver2(R2_start, R2_finish)
-        ['At(Queue) & ~At(R2_finish)'],  # Driver2(R2_finish, Queue)
-        ['At(EnterParking) & ~At(Queue)'],  # Driver2(Queue, EnterParking)
-        ['At(IncreaseCounter) & ~At(EnterParking)'],  # Driver2(EnterParking, IncreaseCounter)
-        ['At(Alternative_Parking) & ~At(IncreaseCounter)']  # Driver2(IncreaseCounter, Alternative_Parking)
-    ]
-}
-
-# База Действий
-go_Parking = HLA('Go(Home, Parking)', precond='At(Home)', effect='At(Parking) & ~At(Home)')
-go_Alternative_Parking = HLA('Go(Home, Alternative_Parking)', precond='At(Home)',
-                             effect='At(Alternative_Parking) & ~At(Home)')
-
-# # Сериализация объектов HLA в формат JSON
-# go_parking_json = go_Parking.to_json()
-# go_alternative_parking_json = go_Alternative_Parking.to_json()
-
-# Словарь целей и их соответствующих состояний
-goal_state_mapping = {
-    'Отправить_на_парковку': {
-        'goal': go_Parking,
-        'initial_state': 'At(Home) & Have(Car)',
-        'target_state': 'At(Parking)'
-    },
-    'Отправить_на_альтернативную_парковку': {
-        'goal': go_Alternative_Parking,
-        'initial_state': 'At(Home) & Have(Car)',
-        'target_state': 'At(Alternative_Parking)'
-    },
-}
-
 class ATAgentPlanner(ATComponent):
-    # def __init__(self, planning_base):
-    #     self.planning_base = planning_base
-    def __init__(self, connection_parameters: ConnectionParameters, planning_base, *args, **kwargs):
-        # Вызов конструктора базового класса с передачей параметров
+    def __init__(self, connection_parameters: ConnectionParameters, *args, **kwargs):
         super().__init__(connection_parameters, *args, **kwargs)
-        # Инициализация базы планов
-        self.planning_base = planning_base
+        self._action_base = None
+        self._goal_state_mapping = None
 
-    # Функция для определения состояния на основе цели
+    @property
+    def planning_base(self):
+        with open('/package/src/planning_base/planning_base.json') as f:
+            return json.load(f)
+
+    def create_action_base(self, planning_base):
+        action_base = []
+        seen_go_actions = set()
+
+        for hla, precond, effect in zip(planning_base['HLA'], planning_base['precond'], planning_base['effect']):
+            if hla.startswith("Go("):  # Проверяем, начинается ли HLA с "Go("
+                if hla not in seen_go_actions:  # Проверяем, добавляли ли уже такой Go(...)
+                    action = HLA(hla, precond=precond[0], effect=effect[0])
+                    action_base.append(action)
+                    seen_go_actions.add(hla)  # Отмечаем Go(...) как добавленный
+        return action_base
+
+    def initialize_action_base_and_goals(self):
+        # Инициализация базы действий
+        self._action_base = self.create_action_base(self.planning_base)
+
+        # Создание списков начальных и целевых состояний
+        initial_states = [action.precond for action in self._action_base]
+        target_states = [action.effect for action in self._action_base]
+
+        # Распределение действий
+        go_Parking, go_Alternative_Parking = self._action_base[:2]
+        initial_state_0, target_state_0 = initial_states[0], target_states[0]
+        initial_state_1, target_state_1 = initial_states[1], target_states[1]
+
+        # Создание словаря целей
+        self._goal_state_mapping = {
+            'Отправить_на_парковку': {
+                'goal': go_Parking,
+                'initial_state': initial_state_0,
+                'target_state': target_state_0
+            },
+            'Отправить_на_альтернативную_парковку': {
+                'goal': go_Alternative_Parking,
+                'initial_state': initial_state_1,
+                'target_state': target_state_1
+            },
+        }
+
+    @property
+    def goal_state_mapping(self):
+        # Ленивая инициализация словаря целей
+        if self._goal_state_mapping is None:
+            self.initialize_action_base_and_goals()
+        return self._goal_state_mapping
+
     def map_goal_to_states(self, at_solver_goal):
-        if at_solver_goal in goal_state_mapping:
-            goal_info = goal_state_mapping[at_solver_goal]
+        # Используем словарь целей для получения информации
+        if at_solver_goal in self.goal_state_mapping:
+            goal_info = self.goal_state_mapping[at_solver_goal]
             return goal_info['goal'], goal_info['initial_state'], goal_info['target_state']
         else:
             raise ValueError(f'Неизвестная цель: {at_solver_goal}')
@@ -186,7 +139,7 @@ class ATAgentPlanner(ATComponent):
 
 async def main():
     connection_parameters = ConnectionParameters(connection_url) # Параметры подключения к RabbitMQ
-    at_planner = ATAgentPlanner(connection_parameters=connection_parameters, planning_base=planning_base) # Создание компонента
+    at_planner = ATAgentPlanner(connection_parameters=connection_parameters) # Создание компонента
     await at_planner.initialize() # Подключение компонента к RabbitMQ
     await at_planner.register() # Отправка сообщения на регистрацию в брокер
 
@@ -202,11 +155,3 @@ async def main():
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     asyncio.run(main())
-
-
-# # Создание объекта планировщика
-# planner = ATAgentPlanner(planning_base)
-#
-# # Пример использования метода process_agent_goal
-# planner.process_agent_goal(go_Parking, 'At(Home) & Have(Car)', 'At(Parking)')
-# planner.process_agent_goal(go_Alternative_Parking, 'At(Home) & Have(Car)', 'At(Alternative_Parking)')
