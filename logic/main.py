@@ -5,12 +5,10 @@ import os
 import yaml
 import asyncio
 from typing import Dict
-from colorama import Fore, Style
 import logging
-# from package.src.agents_config.AGENTS import AGENTS
 import json
 
-AGENTS = json.load(open('/package/src/agents_config/AGENTS.json'))
+AGENTS = json.load(open('/package/src/kb/AGENTS.json'))
 
 logger = logging.getLogger(__name__)
 

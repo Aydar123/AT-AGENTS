@@ -1,0 +1,174 @@
+{
+  "Отправление_Альтернативная_парковка": {
+    "@id": "Отправление_Альтернативная_парковка",
+    "@meta": "simple",
+    "@desc": "Отправление_Альтернативная_парковка",
+    "condition": {
+      "and": {
+        "gt": {
+          "ref": {
+            "@id": "Парковка",
+            "ref": {
+              "@id": "Процент_заполнения",
+              "with": {
+                "@belief": "50",
+                "@probability": "100",
+                "@accuracy": "0"
+              }
+            },
+            "with": {
+              "@belief": "50",
+              "@probability": "100",
+              "@accuracy": "0"
+            }
+          },
+          "value": "70",
+          "with": {
+            "@belief": "50",
+            "@probability": "100",
+            "@accuracy": "0"
+          }
+        },
+        "lt": {
+          "ref": {
+            "@id": "Альтернативная_парковка",
+            "ref": {
+              "@id": "Расстояние",
+              "with": {
+                "@belief": "50",
+                "@probability": "100",
+                "@accuracy": "0"
+              }
+            },
+            "with": {
+              "@belief": "50",
+              "@probability": "100",
+              "@accuracy": "0"
+            }
+          },
+          "value": "2000",
+          "with": {
+            "@belief": "50",
+            "@probability": "100",
+            "@accuracy": "0"
+          }
+        }
+      }
+    },
+    "action": {
+      "assign": [
+        {
+          "ref": {
+            "@id": "Транспортное_средство",
+            "ref": {
+              "@id": "Состояние_тс",
+              "with": {
+                "@belief": "50",
+                "@probability": "100",
+                "@accuracy": "0"
+              }
+            }
+          },
+          "value": "Едет_на_альтернативную_парковку",
+          "with": {
+            "@belief": "50",
+            "@probability": "100",
+            "@accuracy": "0"
+          }
+        },
+        {
+          "ref": {
+            "@id": "Цели_агента",
+            "ref": {
+              "@id": "Цель",
+              "with": {
+                "@belief": "50",
+                "@probability": "100",
+                "@accuracy": "0"
+              }
+            }
+          },
+          "value": "Отправить_на_альтернативную_парковку",
+          "with": {
+            "@belief": "50",
+            "@probability": "100",
+            "@accuracy": "0"
+          }
+        }
+      ]
+    }
+  },
+  "Гарантированная_парковка": {
+    "@id": "Гарантированная_парковка",
+    "@meta": "simple",
+    "@desc": "Гарантированная_парковка",
+    "condition": {
+      "lt": {
+        "ref": {
+          "@id": "Парковка",
+          "ref": {
+            "@id": "Процент_заполнения",
+            "with": {
+              "@belief": "50",
+              "@probability": "100",
+              "@accuracy": "0"
+            }
+          },
+          "with": {
+            "@belief": "50",
+            "@probability": "100",
+            "@accuracy": "0"
+          }
+        },
+        "value": "70",
+        "with": {
+          "@belief": "50",
+          "@probability": "100",
+          "@accuracy": "0"
+        }
+      }
+    },
+    "action": {
+      "assign": [
+        {
+          "ref": {
+            "@id": "Транспортное_средство",
+            "ref": {
+              "@id": "Состояние_тс",
+              "with": {
+                "@belief": "50",
+                "@probability": "100",
+                "@accuracy": "0"
+              }
+            }
+          },
+          "value": "Едет_на_парковку",
+          "with": {
+            "@belief": "50",
+            "@probability": "100",
+            "@accuracy": "0"
+          }
+        },
+        {
+          "ref": {
+            "@id": "Цели_агента",
+            "ref": {
+              "@id": "Цель",
+              "with": {
+                "@belief": "50",
+                "@probability": "100",
+                "@accuracy": "0"
+              }
+            }
+          },
+          "value": "Отправить_на_парковку",
+          "with": {
+            "@belief": "50",
+            "@probability": "100",
+            "@accuracy": "0"
+          }
+        }
+      ]
+    }
+  }
+}

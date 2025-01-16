@@ -14,6 +14,20 @@
             text-align: center;
             color: #333;
         }
+        .btn {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            text-decoration: none;
+            border-radius: 4px;
+            transition: background-color 0.3s;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
         button {
             display: block;
             margin: 20px auto;
@@ -56,6 +70,7 @@
     <h1>Совместное функционирование</h1>
     <button id="fetchResults">Запустить совместное функционирование</button>
     <div class="container" id="resultsContainer">
+        <a href="/todoOutput" class="btn">Назад</a>
         <div class="section">
             <h2>Полученная цель</h2>
             <pre id="goal">No results yet...</pre>

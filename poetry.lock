@@ -3547,6 +3547,17 @@ files = [
 h11 = ">=0.9.0,<1"
 
 [[package]]
+name = "xmltodict"
+version = "0.14.2"
+description = "Makes working with XML feel like you are working with JSON"
+optional = false
+python-versions = ">=3.6"
+files = [
+    {file = "xmltodict-0.14.2-py2.py3-none-any.whl", hash = "sha256:20cc7d723ed729276e808f26fb6b3599f786cbc37e06c65e192ba77c40f20aac"},
+    {file = "xmltodict-0.14.2.tar.gz", hash = "sha256:201e7c28bb210e374999d1dde6382923ab0ed1a8a5faeece48ab525b7810a553"},
+]
+
+[[package]]
 name = "yarl"
 version = "1.18.3"
 description = "Yet another URL library"
@@ -3645,4 +3656,4 @@ propcache = ">=0.2.0"
 [metadata]
 lock-version = "2.0"
 python-versions = "^3.12"
-content-hash = "7d8e4d7bc6b98045134945a7306b82ca5c8ff55856171183bd2a09f76fc4b43c"
+content-hash = "4833902ff1d4955473e88db862b3c0c271ee9d50d4d1ce5a5662278bdfe36331"

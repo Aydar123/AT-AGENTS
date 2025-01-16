@@ -5,9 +5,22 @@
     <title>input-data</title>
     <link href="/static/bootstrap.min.css" rel="stylesheet"/>
     <script src="/static/bootstrap.min.js"></script>
+    <style>
+    body {
+        display: flex;
+        flex-direction: column;
+        min-height: 100vh;
+        margin: 0; /* Убираем стандартные отступы */
+    }
+    .container {
+        margin-top: 20px;
+        margin-bottom: 40px;
+        flex-grow: 1; /* Контейнер занимает оставшееся пространство */
+    }
+    </style>
 </head>
-<body>
 
+<body>
 <div class="container mt-5">
     <div>
         <h2>Загрузка исходных данных</h2>
@@ -40,86 +53,177 @@
                 <div class="form-text">
                     Для создания БЗ перейдите в редактор с помощью кнопки "перейти" ниже
                 </div>
-                <hr>
-                <div class="btn-group w-100 rounded-4 mb-1" role="group" >
-                    <a href="http://45.148.245.134:8787/" type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
-                        Перейти
-                    </a>
-                    <a type="button" class="btn btn-outline-primary btn-sm rounded-end-4">
-                        Загрузить
-                    </a>
-                </div>
-            </div>
-            {% if checked == True %}
-            <span class="badge text-bg-success rounded-4 small">
-                Выполнено
-            </span>
-            {% else %}
-            <span class="badge text-bg-danger rounded-4 small">
-                Не выполнено
-            </span>
-            {% endif %}
-        </li>
-        <li class="list-group-item d-flex justify-content-between align-items-start">
-            <div class="ms-2 me-auto">
-                <div class="fw-bold">
-                    2. Создать Модель внешнего мира
-                </div>
                 <div class="form-text">
-                    Для создания модели внешнего мира перейдите в редактор с помощью кнопки "перейти" ниже
+                    Для загрузки БЗ нажмите "Выбрать файл" и "Сохранить"
                 </div>
                 <hr>
-                <div class="btn-group w-100 rounded-4 mb-1" role="group" >
-                    <a type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
-                        Перейти
-                    </a>
-                    <a type="button" class="btn btn-outline-primary btn-sm rounded-end-4">
-                        Загрузить
-                    </a>
-                </div>
+                <form action="/upload/kb" method="post" enctype="multipart/form-data" class="w-100">
+                    <div class="btn-group w-100 rounded-4 mb-1" role="group">
+                        <a href="http://45.148.245.134:8787/" type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
+                            Перейти
+                        </a>
+                        <label class="btn btn-outline-primary btn-sm rounded-end-4 mb-0">
+                            Выбрать файл <input type="file" name="file" id="fileInputKB" hidden onchange="update_KB_FileName()">
+                        </label>
+                    </div>
+                    <div class="d-flex align-items-center mt-2">
+                        <button type="submit" class="btn btn-outline-success btn-sm">Сохранить</button>
+                        <span id="fileNameKB" class="ms-3 text-muted small"></span>
+                    </div>
+                </form>
             </div>
-            {% if checked == True %}
-            <span class="badge text-bg-success rounded-4 small">
-                Выполнено
+            <span id="status-create-knowledge-base" class="badge text-bg-danger rounded-4 small">
+                    Не выполнено
             </span>
-            {% else %}
-            <span class="badge text-bg-danger rounded-4 small">
-                Не выполнено
-            </span>
-            {% endif %}
         </li>
         <li class="list-group-item d-flex justify-content-between align-items-start">
             <div class="ms-2 me-auto">
                 <div class="fw-bold">
-                    3. Создать Базу планов и Базу действий
+                    2. Создать Базу Планов
                 </div>
                 <div class="form-text">
                     Для создания БП перейдите в редактор с помощью кнопки "перейти" ниже
                 </div>
-                <hr>
-                <div class="btn-group w-100 rounded-4 mb-1" role="group" >
-                    <a href="/editor" type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
-                        Перейти
-                    </a>
-                    <a type="button" class="btn btn-outline-primary btn-sm rounded-end-4">
-                        Загрузить
-                    </a>
+                <div class="form-text">
+                    Для загрузки БП нажмите "Выбрать файл" и "Сохранить"
                 </div>
+                <hr>
+                <form action="/upload/plan/base" method="post" enctype="multipart/form-data" class="w-100">
+                    <div class="btn-group w-100 rounded-4 mb-1" role="group">
+                        <a href="/editor" type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
+                            Перейти
+                        </a>
+                        <label class="btn btn-outline-primary btn-sm rounded-end-4 mb-0">
+                            Выбрать файл <input type="file" name="file" id="fileInputPB" hidden onchange="update_PB_FileName()">
+                        </label>
+                    </div>
+                    <div class="d-flex align-items-center mt-2">
+                        <button type="submit" class="btn btn-outline-success btn-sm">Сохранить</button>
+                        <span id="fileNamePB" class="ms-3 text-muted small"></span>
+                    </div>
+                </form>
             </div>
-            {% if checked == True %}
-            <span class="badge text-bg-success rounded-4 small">
-                Выполнено
+            <span id="status-create-plan-base" class="badge text-bg-danger rounded-4 small">
+                    Не выполнено
             </span>
-            {% else %}
-            <span class="badge text-bg-danger rounded-4 small">
-                Не выполнено
+        </li>
+        <li class="list-group-item d-flex justify-content-between align-items-start">
+            <div class="ms-2 me-auto">
+                <div class="fw-bold">
+                    3. Создать модель внешнего окружения
+                </div>
+                <div class="form-text">
+                    Для создания модели внешнего окружения перейдите в редактор с помощью кнопки "перейти" ниже
+                </div>
+                <div class="form-text">
+                    Для загрузки модели нажмите "Выбрать файл" и "Сохранить"
+                </div>
+                <hr>
+                <form action="/upload/at/simulation/subsystem" method="post" enctype="multipart/form-data" class="w-100">
+                    <div class="btn-group w-100 rounded-4 mb-1" role="group">
+                        <a type="button" class="btn btn-outline-primary btn-sm rounded-start-4">
+                            Перейти
+                        </a>
+                        <label class="btn btn-outline-primary btn-sm rounded-end-4 mb-0">
+                            Выбрать файл <input type="file" name="file" id="fileInputSybSystem" hidden onchange="update_SybSystem_FileName()">
+                        </label>
+                    </div>
+                    <div class="d-flex align-items-center mt-2">
+                        <button type="submit" class="btn btn-outline-success btn-sm">Сохранить</button>
+                        <span id="fileNameSybSystem" class="ms-3 text-muted small"></span>
+                    </div>
+                </form>
+            </div>
+            <span id="status-create-environment" class="badge text-bg-danger rounded-4 small">
+                    Не выполнено
             </span>
-            {% endif %}
         </li>
     </ul>
   </div>
   {% endif %}
 </div>
+
+<script>
+    document.querySelectorAll('form').forEach(form => {
+        form.addEventListener('submit', async function (e) {
+            e.preventDefault(); // Предотвращение стандартной отправки формы
+
+            const formData = new FormData(this);
+            const response = await fetch(this.action, {
+                method: 'POST',
+                body: formData
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                let statusBadge;
+                if (data.task === "create_knowledge_base") {
+                    statusBadge = document.getElementById('status-create-knowledge-base');
+                    sessionStorage.setItem('status-create-knowledge-base', 'Выполнено');
+                } else if (data.task === "create_environment") {
+                    statusBadge = document.getElementById('status-create-environment');
+                    sessionStorage.setItem('status-create-environment', 'Выполнено');
+                } else if (data.task === "create_plan_base") {
+                    statusBadge = document.getElementById('status-create-plan-base');
+                    sessionStorage.setItem('status-create-plan-base', 'Выполнено');
+                }
+
+                if (statusBadge) {
+                    statusBadge.textContent = "Выполнено";
+                    statusBadge.classList.remove('text-bg-danger');
+                    statusBadge.classList.add('text-bg-success');
+                }
+            } else {
+                alert("Ошибка при загрузке файла.");
+            }
+        });
+    });
+
+    // Обновление имени файла после его выбора
+    function updateFileName(inputId, spanId, storageKey) {
+        const fileInput = document.getElementById(inputId);
+        const fileNameSpan = document.getElementById(spanId);
+        if (fileInput.files.length > 0) {
+            const fileName = fileInput.files[0].name;
+            sessionStorage.setItem(storageKey, fileName);
+            fileNameSpan.textContent = fileName;
+        } else {
+            fileNameSpan.textContent = '';
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", () => {
+        const fileInputMappings = [
+            { inputId: 'fileInputKB', spanId: 'fileNameKB', storageKey: 'lastUploadedFileKB', statusKey: 'status-create-knowledge-base' },
+            { inputId: 'fileInputSybSystem', spanId: 'fileNameSybSystem', storageKey: 'lastUploadedFileSybSystem', statusKey: 'status-create-environment' },
+            { inputId: 'fileInputPB', spanId: 'fileNamePB', storageKey: 'lastUploadedFilePB', statusKey: 'status-create-plan-base' }
+        ];
+
+        // Восстановление названия файлов и статусов из sessionStorage при загрузке страницы
+        fileInputMappings.forEach(({ inputId, spanId, storageKey, statusKey }) => {
+            const fileNameSpan = document.getElementById(spanId);
+            const statusBadge = document.getElementById(statusKey);
+
+            const savedFileName = sessionStorage.getItem(storageKey);
+            const savedStatus = sessionStorage.getItem(statusKey);
+
+            if (savedFileName) {
+                fileNameSpan.textContent = savedFileName;
+            }
+            if (savedStatus === "Выполнено") {
+                statusBadge.textContent = "Выполнено";
+                statusBadge.classList.remove('text-bg-danger');
+                statusBadge.classList.add('text-bg-success');
+            }
+        });
+
+        // Добавление обработчиков для обновления названия файлов
+        fileInputMappings.forEach(({ inputId, spanId, storageKey }) => {
+            const fileInput = document.getElementById(inputId);
+            fileInput.addEventListener('change', () => updateFileName(inputId, spanId, storageKey));
+        });
+    });
+</script>
 
 </body>
 </html>

@@ -4,14 +4,14 @@ import uuid
 
 data = []
 try:
-    with open('data/data.json', 'r') as file:
+    with open('userdata/user_data.json', 'r') as file:
         data = json.loads(file.read())
 except Exception as error:
     pass
 
 
 def save_data():
-    with open('data/data.json', 'w') as file:
+    with open('userdata/user_data.json', 'w') as file:
         file.write(json.dumps(data, ensure_ascii=False))
 
 
@@ -110,7 +110,6 @@ def generate_precond_effect(hla_action):
 
 
 def create_planning_base(planning_base, hla_action, steps):
-
     if not isinstance(planning_base, dict):
         raise TypeError("planning_base must be a dictionary.")
     if hla_action is None:

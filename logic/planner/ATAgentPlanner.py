@@ -39,31 +39,41 @@ class ATAgentPlanner(ATComponent):
         return action_base
 
     def initialize_action_base_and_goals(self):
-        # Инициализация базы действий
         self._action_base = self.create_action_base(self.planning_base)
 
-        # Создание списков начальных и целевых состояний
+        # Получение начальных и целевых состояний из базы действий
         initial_states = [action.precond for action in self._action_base]
         target_states = [action.effect for action in self._action_base]
+        # goal_states = [a.action for a in self._action_base]
 
-        # Распределение действий
-        go_Parking, go_Alternative_Parking = self._action_base[:2]
-        initial_state_0, target_state_0 = initial_states[0], target_states[0]
-        initial_state_1, target_state_1 = initial_states[1], target_states[1]
+        with open('/package/src/agents_config/selected_rules.json') as f:
+            selected_rules = json.load(f)
 
-        # Создание словаря целей
-        self._goal_state_mapping = {
-            'Отправить_на_парковку': {
-                'goal': go_Parking,
-                'initial_state': initial_state_0,
-                'target_state': target_state_0
-            },
-            'Отправить_на_альтернативную_парковку': {
-                'goal': go_Alternative_Parking,
-                'initial_state': initial_state_1,
-                'target_state': target_state_1
-            },
-        }
+        # Динамическое создание словаря целей
+        goal_state_mapping = {}
+        for idx, (rule_name, rule_data) in enumerate(selected_rules.items()):
+            # Извлечение значения "value" из "assign", учитывая, что это может быть список
+            assign_data = rule_data.get("action", {}).get("assign", [])
+            if isinstance(assign_data, list):
+                goal_values = [item.get("value") for item in assign_data if isinstance(item, dict)]
+            else:
+                goal_values = [assign_data.get("value")] if isinstance(assign_data, dict) else []
+
+            # Используем начальные и целевые состояния из action_base
+            initial_state = initial_states[idx] if idx < len(initial_states) else None
+            target_state = target_states[idx] if idx < len(target_states) else None
+            # goal_state = goal_states[idx] if idx < len(goal_states) else None
+
+            # Находим соответствующее действие в action_base
+            if idx < len(self._action_base):
+                for goal_value in goal_values:
+                    goal_state_mapping[goal_value] = {
+                        "goal": self._action_base[idx],  # Действие из action_base
+                        "initial_state": initial_state,
+                        "target_state": target_state,
+                    }
+
+        self._goal_state_mapping = goal_state_mapping
 
     @property
     def goal_state_mapping(self):

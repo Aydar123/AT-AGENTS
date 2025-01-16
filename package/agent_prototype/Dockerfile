@@ -11,7 +11,7 @@ COPY pyproject.toml .
 RUN pip install poetry
 RUN poetry install --no-root
 
-COPY data ./data
+COPY userdata ./userdata
 COPY logic ./logic
 COPY static ./static
 COPY templates ./templates
