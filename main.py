@@ -1,4 +1,6 @@
 from flask import *
+from werkzeug.utils import secure_filename
+
 from data import *
 import datetime
 import yaml
@@ -9,8 +11,22 @@ import logging
 from asgiref.wsgi import WsgiToAsgi
 from uvicorn import Config, Server
 from typing import Optional
+import os
+import xmltodict
 
 AGENTS = json.load(open('./package/src/agents_config/AGENTS.json'))
+XML_FILE_PATH = "package/src/kb/Kutdusov_parking_kb_v3_3.xml"
+SELECTED_RULES_FILE = "./package/src/agents_config/selected_rules.json"
+
+UPLOAD_FOLDER_KB = './package/src/kb/'
+UPLOAD_FOLDER_AT_SIM_SUB = './package/src/at_simulation_subsystem/subsystem_model/'
+UPLOAD_FOLDER_PB = './package/src/planning_base/'
+
+tasks = {
+    "create_knowledge_base": {"checked": False},
+    "create_environment": {"checked": False},
+    "create_plan_base": {"checked": False},
+}
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +36,10 @@ connection_url = config["connection"]["url"]
 
 app = Flask(__name__)
 app.secret_key = "SECRET_KEY"
-# socketio = SocketIO(app)
+app.config['UPLOAD_FOLDER_KB'] = UPLOAD_FOLDER_KB
+app.config['UPLOAD_FOLDER_AT_SIM_SUB'] = UPLOAD_FOLDER_AT_SIM_SUB
+app.config['UPLOAD_FOLDER_PB'] = UPLOAD_FOLDER_PB
+
 
 @app.route('/')
 def main_root():
@@ -164,50 +183,227 @@ def get_editors():
     return render_template('base_editor.html')
 
 
+# @app.route('/editor', methods=['POST'])
+# def add_hla():
+#     try:
+#         # Инициализируем базу планов
+#         planning_base = {'HLA': [], 'steps': [], 'precond': [], 'effect': []}
+#
+#         # Получаем HLA переменные
+#         hla_var1 = request.form.getlist('hla_var1[]')  # Начальные состояния HLA
+#         hla_var2 = request.form.getlist('hla_var2[]')  # Конечные состояния HLA
+#
+#         if not hla_var1 or not hla_var2:
+#             return jsonify({'error': 'Должны быть заполнены все поля HLA.'}), 400
+#
+#         # Создаем список HLA-операций
+#         hla_actions = [f"Go({start}, {end})" for start, end in zip(hla_var1, hla_var2)]
+#
+#         # Обрабатываем шаги для каждой HLA-операции
+#         steps = []
+#         for i, hla_action in enumerate(hla_actions):
+#             # Получаем шаги для текущей HLA
+#             step_vars = request.form.getlist(f"step_vars[{i + 1}][]")  # Список шагов
+#             if len(step_vars) < 2:
+#                 return jsonify({'error': f'Для refinements {i + 1} должно быть как минимум два шага.'}), 400
+#
+#             # Формируем шаги Driver(StepN, StepN+1)
+#             formatted_steps = [
+#                 f"Driver({step_vars[j]}, {step_vars[j + 1]})"
+#                 for j in range(len(step_vars) - 1)
+#             ]
+#             steps.append(formatted_steps)
+#
+#             # Обновляем planning_base для текущей HLA
+#             create_planning_base(planning_base, hla_action, formatted_steps)
+#
+#         # Сохраняем обновленный planning_base
+#         save_path = "./package/src/planning_base/planning_base.json"
+#         with open(save_path, 'w') as f:
+#             json.dump(planning_base, f, indent=2)
+#
+#         return jsonify({'message': 'Planning base successfully created',
+#                         'planning_base': planning_base,
+#                         'action_base': create_action_base(planning_base)}), 200
+#
+#     except Exception as e:
+#         print(f"Error in add_hla: {e}")
+#         return jsonify({'error': f'Ошибка при обработке запроса: {str(e)}'}), 500
+
+
 @app.route('/editor', methods=['POST'])
 def add_hla():
     try:
+        # Инициализируем базу планов
         planning_base = {'HLA': [], 'steps': [], 'precond': [], 'effect': []}
 
         # Получаем HLA переменные
-        hla_var1 = request.form.getlist('hla_var1[]')  # Список значений для переменной 1
-        hla_var2 = request.form.getlist('hla_var2[]')  # Список значений для переменной 2
+        hla_var1 = request.form.getlist('hla_var1[]')  # Начальные состояния HLA
+        hla_var2 = request.form.getlist('hla_var2[]')  # Конечные состояния HLA
 
-        # Собираем шаги
-        steps = []
-        for i in range(len(hla_var1)):  # Для каждого блока HLA
-            step_var1 = request.form.getlist(f'step_var1_{i + 1}[]')  # Переменная шагов 1
-            step_var2 = request.form.getlist(f'step_var2_{i + 1}[]')  # Переменная шагов 2
-            steps.append({'step_var1': step_var1, 'step_var2': step_var2})
-
-        # Проверяем заполненность данных
-        if not hla_var1 or not hla_var2 or not steps:
-            return jsonify({'error': 'Не все данные заполнены.'}), 400
+        if not hla_var1 or not hla_var2:
+            return jsonify({'error': 'Должны быть заполнены все поля HLA.'}), 400
 
         # Создаем список HLA-операций
-        hla_actions = [f"Go({var1}, {var2})" for var1, var2 in zip(hla_var1, hla_var2)]
+        hla_actions = [f"Go({start}, {end})" for start, end in zip(hla_var1, hla_var2)]
 
         # Обрабатываем шаги для каждой HLA-операции
+        steps = []
         for i, hla_action in enumerate(hla_actions):
-            # Формируем formatted_steps для текущего HLA
-            step_group = steps[i]  # Берем шаги, соответствующие текущей HLA-операции
-            formatted_steps = [
-                f"Driver({var1}, {var2})"
-                for var1, var2 in zip(step_group['step_var1'], step_group['step_var2'])
-            ]
+            # Получаем шаги для текущей HLA
+            step_vars = request.form.getlist(f"step_vars[{i + 1}][]")  # Список шагов
+            if len(step_vars) < 2:
+                return jsonify({'error': f'Для refinements {i + 1} должно быть как минимум два шага.'}), 400
 
+            # Формируем шаги Driver(StepN, StepN+1)
+            formatted_steps = [
+                f"Driver({step_vars[j]}, {step_vars[j + 1]})"
+                for j in range(len(step_vars) - 1)
+            ]
+            steps.append(formatted_steps)
+
+            # Обновляем planning_base для текущей HLA
             create_planning_base(planning_base, hla_action, formatted_steps)
 
         # Сохраняем обновленный planning_base
-        save_path = "./package/src/planning_base/planning_base.json"
-        with open(save_path, 'w') as f:
+        planning_base_path = "./package/src/planning_base/planning_base.json"
+        with open(planning_base_path, 'w') as f:
             json.dump(planning_base, f, indent=2)
 
-        return jsonify({'message': 'Planning base successful created', 'planning_base': planning_base}), 200
+        # # Создаем базу действий
+        # action_base = create_action_base(planning_base)
+        #
+        # # Сохраняем базу действий в файл
+        # action_base_path = "./package/src/action_base/action_base.json"
+        # action_base_serialized = [
+        #     {"hla": action.hla, "precond": action.precond, "effect": action.effect}
+        #     for action in action_base
+        # ]
+        # with open(action_base_path, 'w') as f:
+        #     json.dump(action_base_serialized, f, indent=2)
+
+        return render_template('base_results.html', planning_base=planning_base)
+
+        # return jsonify({
+        #     'message': 'Planning base and action base successfully created',
+        #     'planning_base': planning_base,
+        #     # 'action_base': action_base_serialized
+        # }), 200
 
     except Exception as e:
         print(f"Error in add_hla: {e}")
         return jsonify({'error': f'Ошибка при обработке запроса: {str(e)}'}), 500
+
+
+@app.route("/get/rules", methods=["GET"])
+def get_rules():
+    # Загружаем XML-файл
+    tree = ET.parse(XML_FILE_PATH)
+    root = tree.getroot()
+
+    # Извлекаем правила из тега <rules>
+    rules = []
+    for rule in root.findall(".//rules/rule"):
+        rule_id = rule.get("id")
+        if rule_id:
+            rules.append(rule_id)
+
+    # Возвращаем JSON с правилами
+    return jsonify(rules)
+
+
+@app.route("/save/selected_rules", methods=["POST"])
+def save_selected_rules():
+    # Проверяем, что запрос содержит данные
+    if not request.json or 'selected_rules' not in request.json:
+        return jsonify({"error": "Данные отсутствуют или некорректны"}), 400
+
+    selected_rules_ids = request.json['selected_rules']  # Получаем список выбранных правил (id)
+
+    # Загружаем XML-файл
+    if not os.path.exists(XML_FILE_PATH):
+        return jsonify({"error": f"Файл {XML_FILE_PATH} не найден"}), 500
+
+    tree = ET.parse(XML_FILE_PATH)
+    root = tree.getroot()
+
+    # Создаём структуру для выбранных правил
+    selected_rules_data = {}
+
+    for rule_id in selected_rules_ids:
+        rule = root.find(f".//rules/rule[@id='{rule_id}']")
+        if rule is not None:
+            # Конвертируем XML в словарь
+            rule_dict = xmltodict.parse(ET.tostring(rule, encoding="unicode"))
+            rule_dict = rule_dict.get("rule", {})  # Извлекаем содержимое тега <rule>
+
+            # Добавляем id как ключ
+            selected_rules_data[rule_id] = rule_dict
+
+    try:
+        with open(SELECTED_RULES_FILE, "w", encoding="utf-8") as json_file:
+            json.dump(selected_rules_data, json_file, ensure_ascii=False, indent=2)
+    except Exception as e:
+        return jsonify({"error": f"Не удалось сохранить файл: {str(e)}"}), 500
+
+    return jsonify({"message": "Выбранные правила успешно сохранены", "data": selected_rules_data}), 200
+
+
+@app.route('/upload/kb', methods=['POST'])
+def upload_kb_file():
+    if 'file' not in request.files:
+        return jsonify({"message": "Файл не найден"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"message": "Файл не выбран"}), 400
+
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER_KB'], filename)
+        file.save(filepath)
+
+        # Обновление статуса задачи
+        tasks["create_knowledge_base"]["checked"] = True
+        return jsonify({"message": "Файл успешно загружен", "task": "create_knowledge_base"}), 200
+
+
+@app.route('/upload/at/simulation/subsystem', methods=['POST'])
+def upload_at_sim_subsystem_file():
+    if 'file' not in request.files:
+        return jsonify({"message": "Файл не найден"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"message": "Файл не выбран"}), 400
+
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER_AT_SIM_SUB'], filename)
+        file.save(filepath)
+
+        # Обновление статуса задачи
+        tasks["create_environment"]["checked"] = True
+        return jsonify({"message": "Файл успешно загружен", "task": "create_environment"}), 200
+
+
+@app.route('/upload/plan/base', methods=['POST'])
+def upload_plan_base_file():
+    if 'file' not in request.files:
+        return jsonify({"message": "Файл не найден"}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({"message": "Файл не выбран"}), 400
+
+    if file:
+        filename = secure_filename(file.filename)
+        filepath = os.path.join(app.config['UPLOAD_FOLDER_PB'], filename)
+        file.save(filepath)
+
+        # Обновление статуса задачи
+        tasks["create_plan_base"]["checked"] = True
+        return jsonify({"message": "Файл успешно загружен", "task": "create_plan_base"}), 200
 
 
 # --------------------------------------------------

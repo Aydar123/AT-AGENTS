@@ -1,16 +1,21 @@
 import json
 import uuid
+import xml.etree.ElementTree as ET
+
+# from logic.planner.planning import HLA
+# from tmp_planning.tmp_planning import HLA
+
 
 data = []
 try:
-    with open('data/data.json', 'r') as file:
+    with open('userdata/user_data.json', 'r') as file:
         data = json.loads(file.read())
 except Exception as error:
     pass
 
 
 def save_data():
-    with open('data/data.json', 'w') as file:
+    with open('userdata/user_data.json', 'w') as file:
         file.write(json.dumps(data, ensure_ascii=False))
 
 
@@ -108,8 +113,6 @@ def generate_precond_effect(hla_action):
 
 
 def create_planning_base(planning_base, hla_action, steps):
-    # planning_base = {'HLA': [], 'steps': [], 'precond': [], 'effect': []}
-
     if not isinstance(planning_base, dict):
         raise TypeError("planning_base must be a dictionary.")
     if hla_action is None:
@@ -141,3 +144,19 @@ def create_planning_base(planning_base, hla_action, steps):
         planning_base['steps'].append([])
 
     return planning_base
+
+
+# def create_action_base(planning_base):
+#     action_base = []
+#     seen_go_actions = set()
+#
+#     for hla, precond, effect in zip(planning_base['HLA'], planning_base['precond'], planning_base['effect']):
+#         if hla.startswith("Go("):  # Проверяем, начинается ли HLA с "Go("
+#             if hla not in seen_go_actions:  # Проверяем, добавляли ли уже такой Go(...)
+#                 action = HLA(hla, precond=precond[0], effect=effect[0])
+#                 action_base.append(action)
+#                 seen_go_actions.add(hla)  # Отмечаем Go(...) как добавленный
+#
+#     return action_base
+
+

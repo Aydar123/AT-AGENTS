@@ -1,23 +1,26 @@
 {
   "HLA": [
-    "Go(Home, Parking)",
-    "Driver(Home, r555)",
-    "Driver(r555, Parking)",
     "Go(Home, Alt)",
-    "Driver(Home, r555)",
-    "Driver(r555, Alt)"
+    "Driver(Home, r1)",
+    "Driver(r1, Alt)",
+    "Go(Home, Parking)",
+    "Driver(Home, r123)",
+    "Driver(r123, r456)",
+    "Driver(r456, Parking)"
   ],
   "steps": [
     [
-      "Driver(Home, r555)",
-      "Driver(r555, Parking)"
+      "Driver(Home, r1)",
+      "Driver(r1, Alt)"
     ],
     [],
     [],
     [
-      "Driver(Home, r555)",
-      "Driver(r555, Alt)"
+      "Driver(Home, r123)",
+      "Driver(r123, r456)",
+      "Driver(r456, Parking)"
     ],
+    [],
     [],
     []
   ],
@@ -29,7 +32,7 @@
       "At(Home)"
     ],
     [
-      "At(r555)"
+      "At(r1)"
     ],
     [
       "At(Home)"
@@ -38,27 +41,33 @@
       "At(Home)"
     ],
     [
-      "At(r555)"
+      "At(r123)"
+    ],
+    [
+      "At(r456)"
     ]
   ],
   "effect": [
     [
-      "At(Parking) & ~At(Home)"
-    ],
-    [
-      "At(r555) & ~At(Home)"
-    ],
-    [
-      "At(Parking) & ~At(r555)"
-    ],
-    [
       "At(Alt) & ~At(Home)"
     ],
     [
-      "At(r555) & ~At(Home)"
+      "At(r1) & ~At(Home)"
     ],
     [
-      "At(Alt) & ~At(r555)"
+      "At(Alt) & ~At(r1)"
+    ],
+    [
+      "At(Parking) & ~At(Home)"
+    ],
+    [
+      "At(r123) & ~At(Home)"
+    ],
+    [
+      "At(r456) & ~At(r123)"
+    ],
+    [
+      "At(Parking) & ~At(r456)"
     ]
   ]
 }

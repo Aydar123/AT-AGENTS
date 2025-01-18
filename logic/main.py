@@ -5,8 +5,8 @@ import yaml
 import asyncio
 from typing import Dict
 import logging
-
 import json
+
 AGENTS = json.load(open('./package/src/agents_config/AGENTS.json'))
 
 logger = logging.getLogger(__name__)
