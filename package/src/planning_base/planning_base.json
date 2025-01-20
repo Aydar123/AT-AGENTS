@@ -2,29 +2,38 @@
   "HLA": [
     "Go(Home, Alt)",
     "Driver(Home, r1)",
-    "Driver(r1, r2)",
-    "Driver(r2, Alt)",
+    "Driver(r1, queue)",
+    "Driver(queue, r2)",
+    "Driver(r2, pay)",
+    "Driver(pay, Alt)",
     "Go(Home, Parking)",
     "Driver(Home, r1)",
-    "Driver(r1, queue)",
+    "Driver(r1, r2)",
+    "Driver(r2, queue)",
     "Driver(queue, pay)",
     "Driver(pay, Parking)"
   ],
   "steps": [
     [
       "Driver(Home, r1)",
-      "Driver(r1, r2)",
-      "Driver(r2, Alt)"
+      "Driver(r1, queue)",
+      "Driver(queue, r2)",
+      "Driver(r2, pay)",
+      "Driver(pay, Alt)"
     ],
+    [],
+    [],
     [],
     [],
     [],
     [
       "Driver(Home, r1)",
-      "Driver(r1, queue)",
+      "Driver(r1, r2)",
+      "Driver(r2, queue)",
       "Driver(queue, pay)",
       "Driver(pay, Parking)"
     ],
+    [],
     [],
     [],
     [],
@@ -41,7 +50,13 @@
       "At(r1)"
     ],
     [
+      "At(queue)"
+    ],
+    [
       "At(r2)"
+    ],
+    [
+      "At(pay)"
     ],
     [
       "At(Home)"
@@ -51,6 +66,9 @@
     ],
     [
       "At(r1)"
+    ],
+    [
+      "At(r2)"
     ],
     [
       "At(queue)"
@@ -67,10 +85,16 @@
       "At(r1) & ~At(Home)"
     ],
     [
-      "At(r2) & ~At(r1)"
+      "At(queue) & ~At(r1)"
     ],
     [
-      "At(Alt) & ~At(r2)"
+      "At(r2) & ~At(queue)"
+    ],
+    [
+      "At(pay) & ~At(r2)"
+    ],
+    [
+      "At(Alt) & ~At(pay)"
     ],
     [
       "At(Parking) & ~At(Home)"
@@ -79,7 +103,10 @@
       "At(r1) & ~At(Home)"
     ],
     [
-      "At(queue) & ~At(r1)"
+      "At(r2) & ~At(r1)"
+    ],
+    [
+      "At(queue) & ~At(r2)"
     ],
     [
       "At(pay) & ~At(queue)"

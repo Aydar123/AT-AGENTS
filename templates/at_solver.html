@@ -14,6 +14,21 @@
             text-align: center;
             color: #333;
         }
+        #fetchResults {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            color: white;
+            background-color: #007BFF;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+        }
+        #fetchResults:hover {
+            background-color: #0056b3;
+        }
         .btn {
             display: inline-block;
             margin-bottom: 20px;
@@ -29,18 +44,27 @@
             background-color: #0056b3;
         }
         button {
-            display: block;
-            margin: 20px auto;
-            padding: 10px 20px;
-            font-size: 16px;
+            display: inline-flex;
+            align-items: center;
+            margin: 10px 0;
+            padding: 5px 10px;
+            font-size: 14px;
             background-color: #007BFF;
             color: white;
             border: none;
-            border-radius: 5px;
+            border-radius: 4px;
             cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
         }
         button:hover {
             background-color: #0056b3;
+        }
+        button svg {
+            margin-left: 8px;
+            transition: transform 0.2s;
+        }
+        button.expand svg {
+            transform: rotate(90deg);
         }
         .container {
             max-width: 800px;
@@ -52,40 +76,42 @@
         }
         .section {
             margin-bottom: 20px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            overflow: hidden;
+            background: #FFFFFF; /* Белый цвет для секций */
         }
         .section h2 {
             font-size: 18px;
-            margin-bottom: 10px;
-            color: #007BFF;
+            margin: 0;
+            padding: 10px 15px;
+            background-color: #e6e6e6; /* Светло-серый цвет для заголовка */
+            color: black; /* Цвет текста заголовка */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
         }
-        .section pre {
+        .content {
+            padding: 15px;
+            display: none;
+        }
+        .content pre {
             background: #f0f0f0;
             padding: 10px;
             border-radius: 5px;
             overflow-x: auto;
         }
+
     </style>
 </head>
 <body>
     <h1>Совместное функционирование</h1>
     <button id="fetchResults">Запустить совместное функционирование</button>
-    <div class="container" id="resultsContainer">
+    <div class="container">
         <a href="/todoOutput" class="btn">Назад</a>
-        <div class="section">
-            <h2>Полученная цель</h2>
-            <pre id="goal">No results yet...</pre>
-        </div>
-        <div class="section">
-            <h2>Результат иерархического планирования</h2>
-            <pre id="serializedPlan">No results yet...</pre>
-        </div>
-        <div class="section">
-            <h2>Трасса вывода</h2>
-            <pre id="solverResult">No results yet...</pre>
-        </div>
-        <div class="section">
-            <h2>Рабочая память</h2>
-            <pre id="wmItems">No results yet...</pre>
+        <div id="resultsContainer">
+            <!-- Секции с результатами будут добавляться сюда -->
         </div>
     </div>
 
@@ -96,25 +122,58 @@
                 if (response.ok) {
                     const results = await response.json();
 
-                    // Updating individual sections
-                    document.getElementById('goal').textContent = results.goal || "Not available";
-                    document.getElementById('serializedPlan').textContent = results.serialized_plan || "Not available";
-                    document.getElementById('solverResult').textContent = JSON.stringify(results.solver_result, null, 2);
-                    document.getElementById('wmItems').textContent = JSON.stringify(results.wm_items, null, 2);
+                    const container = document.getElementById('resultsContainer');
+                    container.innerHTML = ""; // Очистить перед обновлением
+
+                    if (Array.isArray(results)) {
+                        results.forEach((result, index) => {
+                            const section = document.createElement('div');
+                            section.className = 'section';
+
+                            const header = document.createElement('h2');
+                            header.innerHTML = `Такт ${index + 1} <button><span>Развернуть</span><svg width="10" height="10" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="white"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6z"/></svg></button>`;
+                            section.appendChild(header);
+
+                            const content = document.createElement('div');
+                            content.className = 'content';
+                            content.innerHTML = `
+                                <h3>Полученная цель</h3>
+                                <pre>${result.goal || "Not available"}</pre>
+                                <h3>Результат иерархического планирования</h3>
+                                <pre>${result.serialized_plan || "Not available"}</pre>
+                                <h3>Трасса вывода</h3>
+                                <pre>${JSON.stringify(result.solver_result, null, 2)}</pre>
+                                <h3>Рабочая память</h3>
+                                <pre>${JSON.stringify(result.wm_items, null, 2)}</pre>
+                            `;
+                            section.appendChild(content);
+
+                            header.addEventListener('click', () => toggleContent(content, header));
+
+                            container.appendChild(section);
+                        });
+                    } else {
+                        container.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>Ожидался массив тактов, но получено: ${JSON.stringify(results)}</pre></div>`;
+                    }
                 } else {
-                    updateSectionsWithError("Results not available yet.");
+                    showError("Результаты пока недоступны.");
                 }
             } catch (err) {
                 console.error(err);
-                updateSectionsWithError("Error fetching results.");
+                showError("Ошибка при получении результатов.");
             }
         });
 
-        function updateSectionsWithError(message) {
-            document.getElementById('goal').textContent = message;
-            document.getElementById('serializedPlan').textContent = message;
-            document.getElementById('solverResult').textContent = message;
-            document.getElementById('wmItems').textContent = message;
+        function toggleContent(content, header) {
+            const button = header.querySelector('button');
+            content.style.display = content.style.display === 'none' || !content.style.display ? 'block' : 'none';
+            button.classList.toggle('expand');
+            button.querySelector('span').textContent = content.style.display === 'block' ? 'Свернуть' : 'Развернуть';
+        }
+
+        function showError(message) {
+            const container = document.getElementById('resultsContainer');
+            container.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>${message}</pre></div>`;
         }
     </script>
 </body>

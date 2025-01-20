@@ -8,7 +8,9 @@ from typing import Dict
 import logging
 import json
 
-AGENTS = json.load(open('/package/src/kb/AGENTS.json'))
+# agents = os.getenv('AGENTS')
+
+AGENTS = json.load(open('/package/src/agents_config/AGENTS.json'))
 
 logger = logging.getLogger(__name__)
 
@@ -87,135 +89,122 @@ class InteractionComponent(ATComponent):
 
     @component_method
     async def interact_once(self, agent: str):
+        all_results = []  # Для хранения результатов всех тактов
         # Вызов подсистемы имитационного моделирования, но она пока не реализована,
         # поэтому просто используем моковые данные
-        logger.info('Starting interaction')
-        simulation_result = [
-            {'ref': 'Парковка.Процент_заполнения', 'value': '27'},
+        simulation_results = [
+            # [{'ref': 'Парковка.Процент_заполнения', 'value': '57'},
+            #  {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_парковку'},
+            #  {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_альтернативную_парковку'}],
+            # [{'ref': 'Парковка.Процент_заполнения.', 'value': '75'},
+            # {'ref': 'Альтернативная_парковка.Расстояние', 'value': '1324'},
+            # {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_парковку'},
+            # {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_альтернативную_парковку'}],
+
+            [{'ref': 'Парковка.Процент_заполнения', 'value': '32'},
             {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_парковку'},
-            {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_альтернативную_парковку'},
-            # Правило 2: Отправление_Альтернативная_парковка (output: True)
-            # {'ref': 'Парковка.Процент_заполнения.', 'value': '80'},
-            # {'ref': 'Альтернативная_парковка.Расстояние', 'value': '1500'},
-            # Правило 3: Включение_приоритета_выезда (output: True)
-            # {'ref': 'Парковка.Очередь_на_въезд', 'value': '5'},
-            # {'ref': 'Транспортное_средство.Приоритет_выезда_тс', 'value': 'Есть'},
+            {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_альтернативную_парковку'}],
+
         ]
 
-        # Обновление общей рабочей памяти
-        await self.exec_external_method(
-            'ATBlackBoard',
-            'set_items',
-            {'items': simulation_result},
-            auth_token=agent
-        )
+        for simulation_result in simulation_results:
+            # Обновление общей рабочей памяти
+            await self.exec_external_method(
+                'ATBlackBoard',
+                'set_items',
+                {'items': simulation_result},
+                auth_token=agent
+            )
 
-        logger.info('Blackboard updated')
+            # обновление рабочей памяти для темпорального решателя
+            await self.exec_external_method(
+                'ATTemporalSolver',
+                'update_wm_from_bb',
+                {},
+                auth_token=agent
+            )
 
-        # обновление рабочей памяти для темпорального решателя
-        await self.exec_external_method(
-            'ATTemporalSolver',
-            'update_wm_from_bb',
-            {},
-            auth_token=agent
-        )
+            # Запуск темпорального решателя
+            temporal_result = await self.exec_external_method(
+                'ATTemporalSolver',
+                'process_tact',
+                {},
+                auth_token=agent
+            )
 
-        logger.info('Temporal solver WM updated')
+            # Обновление общей рабочей памяти результатом работы темпорального решателя
+            temporal_items = [{'ref': key, 'value': value}
+                              for key, value in temporal_result.get('signified', {}).items()]
+            await self.exec_external_method(
+                'ATBlackBoard',
+                'set_items',
+                {'items': temporal_items},
+                auth_token=agent
+            )
 
-        # Запуск темпорального решателя
-        temporal_result = await self.exec_external_method(
-            'ATTemporalSolver',
-            'process_tact',
-            {},
-            auth_token=agent
-        )
+            # Обновление рабочей памяти решателя
+            await self.exec_external_method(
+                'ATSolver',
+                'update_wm_from_bb',
+                {},
+                auth_token=agent
+            )
 
-        logger.info('Temporal solver processed')
+            # Запуск решателя
+            solver_result = await self.exec_external_method(
+                'ATSolver',
+                'run',
+                {},
+                auth_token=agent
+            )
 
-        # Обновление общей рабочей памяти результатом работы темпорального решателя
-        temporal_items = [{'ref': key, 'value': value}
-                          for key, value in temporal_result.get('signified', {}).items()]
-        await self.exec_external_method(
-            'ATBlackBoard',
-            'set_items',
-            {'items': temporal_items},
-            auth_token=agent
-        )
+            # Обновление общей рабочей памяти результатом решателя
+            solver_items = self._items_from_solver_result(solver_result)
 
-        logger.info('Blackboard updated with t.solver result')
+            await self.exec_external_method(
+                'ATBlackBoard',
+                'set_items',
+                {'items': solver_items},
+                auth_token=agent
+            )
 
-        # Обновление рабочей памяти решателя
-        await self.exec_external_method(
-            'ATSolver',
-            'update_wm_from_bb',
-            {},
-            auth_token=agent
-        )
+            logger.info(f'-------------------------АТ-Решатель-------------------------')
 
-        logger.info('Solver WM updated')
+            logger.info(f'\nРабочая память:{solver_result}\n')
+            logger.info(f'Результат решателя:')
 
-        # Запуск решателя
-        solver_result = await self.exec_external_method(
-            'ATSolver',
-            'run',
-            {},
-            auth_token=agent
-        )
+            # напечатаем результат решателя
+            for key, wm_item in solver_result.get('wm', {}).items():
+                logger.info(key, wm_item)
 
-        logger.info('Solver made inference')
+            # пусть цели у нас хранятся в объекте Цели_Агента в его атрибуте "Цель"
+            key = 'Цели_агента.Цель'
+            goal_item = solver_result['wm'][key]
 
-        # Обновление общей рабочей памяти результатом решателя
-        solver_items = self._items_from_solver_result(solver_result)
+            goal = goal_item['content']
+            logger.info(f'\nТаким образом, цель которую необходимо выполнить: {goal}\n')
 
-        await self.exec_external_method(
-            'ATBlackBoard',
-            'set_items',
-            {'items': solver_items},
-            auth_token=agent
-        )
+            # Отправляем цель планировщику и получаем результат
+            serialized_plan = await self.exec_external_method(
+                'ATAgentPlanner',
+                'process_agent_goal',
+                {'at_solver_goal': goal, 'agent': agent}
+            )
 
-        logger.info('BB updated with solver result')
+            # pause_output()
+            logger.info(f'-------------------------Планировщик-------------------------')
+            logger.info(f"{serialized_plan}")
 
-        logger.info(f'-------------------------АТ-Решатель-------------------------')
+            # Сохраняем результат текущего такта
+            all_results.append({
+                'solver_result': solver_result,
+                'wm_items': solver_result.get('wm', {}),
+                'goal': goal,
+                'serialized_plan': serialized_plan
+            })
 
-        logger.info(f'\nРабочая память:{solver_result}\n')
-        logger.info(f'Результат решателя:')
-
-        # напечатаем результат решателя
-        for key, wm_item in solver_result.get('wm', {}).items():
-            logger.info(key, wm_item)
-
-        # пусть цели у нас хранятся в объекте Цели_Агента в его атрибуте "Цель"
-        key = 'Цели_агента.Цель'
-        goal_item = solver_result['wm'][key]
-
-        goal = goal_item['content']
-        logger.info(f'\nТаким образом, цель которую необходимо выполнить: {goal}\n')
-
-        # # отправляем цель планировщику
-        # # пусть у планировщика будет метод process_agent_goal
-        # await self.exec_external_method(
-        #     'ATAgentPlanner',
-        #     'process_agent_goal',
-        #     {'at_solver_goal': goal, 'agent': agent}
-        # )
-
-        # Отправляем цель планировщику и получаем результат
-        serialized_plan = await self.exec_external_method(
-            'ATAgentPlanner',
-            'process_agent_goal',
-            {'at_solver_goal': goal, 'agent': agent}
-        )
-
-        # pause_output()
-        logger.info(f'-------------------------Планировщик-------------------------')
-        logger.info(f"{serialized_plan}")
-        return {
-            'solver_result': solver_result,
-            'wm_items': solver_result.get('wm', {}),
-            'goal': goal,
-            'serialized_plan': serialized_plan
-        }
+        logger.info(f'Все результаты тактов: {all_results}')
+        return all_results
 
 
 # пример использования компонента

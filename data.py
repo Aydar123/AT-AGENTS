@@ -1,6 +1,6 @@
 import json
 import uuid
-
+import xml.etree.ElementTree as ET
 
 data = []
 try:
@@ -141,3 +141,55 @@ def create_planning_base(planning_base, hla_action, steps):
         planning_base['steps'].append([])
 
     return planning_base
+
+def rao_parse_xml(xml_file):
+    tree = ET.parse(xml_file)
+    root = tree.getroot()
+
+    # Извлечение ресурсов
+    resources = []
+    for resource_type in root.findall('Тип_ресурсов'):
+        resource_name = resource_type.attrib.get('Имя_типа_ресурсов')
+        resource_kind = resource_type.attrib.get('Вид_типа_ресурсов')
+        params = []
+        for param in resource_type.findall('Параметр_типа'):
+            params.append({
+                'name': param.attrib.get('Имя_параметра'),
+                'type': param.attrib.get('Тип_параметра'),
+                'default': param.attrib.get('Умолчание'),
+            })
+        resources.append({'name': resource_name, 'type': resource_kind, 'params': params})
+
+    # Извлечение действий
+    actions = [action.attrib.get('Имя_образца') for action in root.findall('Образец_операции')]
+
+    # Извлечение операций
+    operations = [operation.attrib.get('Имя_операции') for operation in root.findall('Операция')]
+
+    return resources, actions, operations
+
+
+def rao_progon_xml_parse(file_path):
+    tree = ET.parse(file_path)
+    root = tree.getroot()
+    resources = []
+
+    for resource in root.findall('Ресурс'):
+        resource_data = {
+            'Имя_ресурса': resource.get('Имя_ресурса'),
+            'Имя_типа_ресурса': resource.get('Имя_типа_ресурса'),
+            'Трассировка': resource.get('Трассировка'),
+            'Номер_такта': resource.get('Номер_такта'),
+            'Параметры': []
+        }
+
+        for param in resource.findall('Параметр_ресурса'):
+            param_data = {
+                'Имя_параметра': param.get('Имя_параметра'),
+                'Значение': param.text
+            }
+            resource_data['Параметры'].append(param_data)
+
+        resources.append(resource_data)
+
+    return resources

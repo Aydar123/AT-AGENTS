@@ -19,6 +19,8 @@ import xml.etree.ElementTree as ET
 
 AGENTS = json.load(open('/package/src/agents_config/AGENTS.json'))
 XML_FILE_PATH = "/package/src/kb/Kutdusov_parking_kb_v3_3.xml"
+RAO_XML_FILE_PATH = "/package/src/at_simulation_subsystem/rao_v3_3.xml"
+RAO_PROGON_XML_FILE_PATH = "/package/src/at_simulation_subsystem/ResourceParameters_v3_3.xml"
 SELECTED_RULES_FILE = "/package/src/agents_config/selected_rules.json"
 
 UPLOAD_FOLDER_KB = '/package/src/kb/'
@@ -343,6 +345,21 @@ def upload_plan_base_file():
         return jsonify({"message": "Файл успешно загружен", "task": "create_plan_base"}), 200
 
 
+@app.route('/rao/view')
+def display_resources():
+    # Парсинг XML
+    resources, actions, operations = rao_parse_xml(RAO_XML_FILE_PATH)
+
+    # Рендеринг HTML
+    return render_template('rao_view.html', resources=resources, actions=actions, operations=operations)
+
+
+@app.route('/rao/view/progon')
+def resources_view():
+    resources = rao_progon_xml_parse(RAO_PROGON_XML_FILE_PATH)
+    return render_template('rao_view_progon.html', resources=resources)
+
+
 # --------------------------------------------------
 # Глобальная переменная для хранения инициализированного компонента
 interaction_component: Optional[InteractionComponent] = None
@@ -371,6 +388,7 @@ async def get_results():
 
     if results_cache:
         return jsonify(results_cache)
+
     return jsonify({"error": "Results not yet available"}), 404
 
 

@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Данные из XML</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        header {
+            background-color: #FFFFFF;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h2 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        .lead {
+            font-size: 1.2rem;
+            color: #555;
+            margin-bottom: 1.5rem;
+        }
+
+        .btn {
+            text-decoration: none;
+            color: white;
+            background-color: #007BFF;
+            padding: 0.8rem 1.2rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-right: 1rem;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        .alert {
+            padding: 1rem;
+            border: 1px solid #f0ad4e;
+            background-color: #fcf8e3;
+            color: #8a6d3b;
+            border-radius: 4px;
+        }
+
+        hr {
+            margin: 2rem 0;
+            border: 0;
+            height: 1px;
+            background: #ddd;
+        }
+
+        .list-group {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .list-group-item {
+            background: #e7f3ff;
+            padding: 1rem;
+            border: 1px solid #ddd;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .list-group-item strong {
+            display: block;
+            font-size: 1.1rem;
+            margin-bottom: 0.5rem;
+        }
+
+        ul ul {
+            padding-left: 1.5rem;
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+            background: #FFFFFF;
+            color: white;
+            font-size: 0.9rem;
+        }
+    </style>
+</head>
+<body>
+<!--    <header>-->
+<!--        <h1>Данные из XML</h1>-->
+<!--    </header>-->
+    <main>
+        <h2>Описание модели внешнего окружения "Городская дорожно-транспортная сеть"</h2>
+        <p class="lead">Описание модели внешнего окружения "Городская дорожно-транспортная сеть" с помощью полнофункционального объектно-ориентированного языка высокого уровня РДО-АТ</p>
+        <a href="/todo" class="btn">Назад</a>
+        <a href="/rao/view/progon" class="btn">Посмотреть результат прогона</a>
+        <hr>
+
+        {% if not resources and not actions and not operations %}
+        <div class="alert">
+            Нет доступных данных для отображения.
+        </div>
+        {% else %}
+
+        {% if resources %}
+        <h4>Ресурсы</h4>
+        <ul class="list-group mb-4">
+            {% for resource in resources %}
+            <li class="list-group-item">
+                <strong>{{ loop.index }}. {{ resource.name }}</strong>
+                <p><em>Тип ресурса:</em> {{ resource.type }}</p>
+                {% if resource.params %}
+                <p><em>Параметры:</em></p>
+                <ul>
+                    {% for param in resource.params %}
+                    <li>
+                        <strong>Имя:</strong> {{ param.name }},
+                        <strong>Тип:</strong> {{ param.type }},
+                        <strong>Умолчание:</strong> {{ param.default }}
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% endif %}
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if actions %}
+        <h4>Действия</h4>
+        <ul class="list-group mb-4">
+            {% for action in actions %}
+            <li class="list-group-item">
+                <strong>{{ loop.index }}. {{ action }}</strong>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+
+        {% if operations %}
+        <h4>Операции</h4>
+        <ul class="list-group">
+            {% for operation in operations %}
+            <li class="list-group-item">
+                <strong>{{ loop.index }}. {{ operation }}</strong>
+            </li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endif %}
+    </main>
+<!--    <footer>-->
+<!--        &copy; 2025 AT-AGENTS Solutions-->
+<!--    </footer>-->
+</body>
+</html>
