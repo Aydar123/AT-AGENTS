@@ -56,10 +56,10 @@
     </div>
     <form id="hla-form" action="/editor" method="POST">
         <div id="hla-container">
-            <h3 class="card-title mb-4">Действия высокого уровня (High-Level Actions)</h3>
+            <h3 class="card-title mb-4">Множество возможных действий (А)</h3>
             <div class="card mb-4">
                 <div class="card-body">
-                    <h3 class="card-title">Уточнения (refinements)</h3>
+                    <h3 class="card-title">Начальное (E) и целевое состояние (G)</h3>
                     <div class="mb-3">
                         <label for="hla_var1_1" class="form-label">Начало</label>
                         <input type="text" name="hla_var1[]" id="hla_var1_1" class="form-control" required>
@@ -69,7 +69,7 @@
                         <input type="text" name="hla_var2[]" id="hla_var2_1" class="form-control" required>
                     </div>
                     <div class="steps-container">
-                        <h4>Шаги (steps)</h4>
+                        <h4>Шаги</h4>
                         <div class="card mb-3">
                             <div class="card-body">
                                 <div id="step-inputs-1">
@@ -86,7 +86,7 @@
             </div>
         </div>
         <div class="d-flex justify-content-between form-buttons">
-            <button type="button" id="add-more-hla" class="btn btn-secondary">Добавить HLA</button>
+            <button type="button" id="add-more-hla" class="btn btn-secondary">Добавить</button>
             <button type="submit" class="btn btn-primary">Завершить и сохранить</button>
         </div>
     </form>
@@ -127,7 +127,7 @@
         hlaBlock.classList.add('card', 'mb-4');
         hlaBlock.innerHTML = `
             <div class="card-body">
-                <h3 class="card-title">Уточнения (refinements)</h3>
+                <h3 class="card-title">Начальное (E) и целевое состояние (G)</h3>
                 <div class="mb-3">
                     <label for="hla_var1_${hlaCount}" class="form-label">Начало</label>
                     <input type="text" name="hla_var1[]" id="hla_var1_${hlaCount}" class="form-control" required>
@@ -137,7 +137,7 @@
                     <input type="text" name="hla_var2[]" id="hla_var2_${hlaCount}" class="form-control" required>
                 </div>
                 <div class="steps-container">
-                    <h4>Steps</h4>
+                    <h4>Шаги</h4>
                     <div class="card mb-3">
                         <div class="card-body">
                             <div id="step-inputs-${hlaCount}">

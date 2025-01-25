@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Список ресурсов</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f9f9f9;
+            color: #333;
+        }
+
+        header {
+            background-color: #FFFFFF;
+            color: white;
+            text-align: center;
+            padding: 1rem 0;
+        }
+
+        .btn {
+            text-decoration: none;
+            color: white;
+            background-color: #007BFF;
+            padding: 0.8rem 1.2rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            margin-right: 1rem;
+            display: inline-block;
+            transition: background-color 0.3s;
+        }
+
+        .btn:hover {
+            background-color: #0056b3;
+        }
+
+        main {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: white;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 1.8rem;
+            color: #333;
+            margin-bottom: 1rem;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+        }
+
+        th, td {
+            text-align: left;
+            padding: 0.8rem;
+            border: 1px solid #ddd;
+        }
+
+        th {
+            background-color: #007BFF;
+            color: white;
+            cursor: pointer;
+        }
+
+        th:hover {
+            background-color: #0056b3;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f2f2f2;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        ul li {
+            background: #e7f3ff;
+            padding: 0.5rem;
+            border: 1px solid #ddd;
+            margin-bottom: 0.5rem;
+            border-radius: 4px;
+        }
+
+        .button-container {
+            text-align: center;
+            margin: 2rem 0;
+        }
+
+        .button-container a {
+            text-decoration: none;
+            color: white;
+            background-color: #007BFF;
+            padding: 0.8rem 1.2rem;
+            border-radius: 5px;
+            font-size: 1rem;
+            transition: background-color 0.3s;
+        }
+
+        .button-container a:hover {
+            background-color: #0056b3;
+        }
+
+        th {
+            position: relative;
+        }
+
+        th.sorted-asc::after,
+        th.sorted-desc::after {
+            content: '';
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            border: 6px solid transparent;
+        }
+
+        th.sorted-asc::after {
+            border-bottom-color: white; /* Цвет стрелки вверх */
+        }
+
+        th.sorted-desc::after {
+            border-top-color: white; /* Цвет стрелки вниз */
+        }
+
+        footer {
+            text-align: center;
+            padding: 1rem;
+            margin-top: 2rem;
+            background: #FFFFFF;
+            color: white;
+            font-size: 0.9rem;
+        }
+    </style>
+    <script>
+      document.addEventListener('DOMContentLoaded', () => {
+          const table = document.querySelector('table');
+          const tbody = table.querySelector('tbody');
+          const headers = table.querySelectorAll('th');
+          const rows = Array.from(tbody.rows);
+          let sortedColumnIndex = null; // Хранит индекс текущего отсортированного столбца
+          let sortOrder = 'asc'; // Направление сортировки: 'asc' или 'desc'
+
+          const sortByColumn = (columnIndex) => {
+              // Определяем направление сортировки
+              if (sortedColumnIndex === columnIndex) {
+                  sortOrder = sortOrder === 'asc' ? 'desc' : 'asc';
+              } else {
+                  sortedColumnIndex = columnIndex;
+                  sortOrder = 'asc';
+              }
+
+              // Сортируем строки
+              rows.sort((a, b) => {
+                  const cellA = a.cells[columnIndex].innerText.trim();
+                  const cellB = b.cells[columnIndex].innerText.trim();
+
+                  const valueA = isNaN(cellA) ? cellA : parseFloat(cellA);
+                  const valueB = isNaN(cellB) ? cellB : parseFloat(cellB);
+
+                  if (sortOrder === 'asc') {
+                      return valueA > valueB ? 1 : valueA < valueB ? -1 : 0;
+                  } else {
+                      return valueA < valueB ? 1 : valueA > valueB ? -1 : 0;
+                  }
+              });
+
+              // Добавляем отсортированные строки обратно в таблицу
+              rows.forEach(row => tbody.appendChild(row));
+
+              // Обновляем индикацию на заголовках
+              updateSortIndicators();
+          };
+
+          const updateSortIndicators = () => {
+              headers.forEach((header, index) => {
+                  // Сбрасываем предыдущую индикацию
+                  header.classList.remove('sorted-asc', 'sorted-desc');
+
+                  // Добавляем индикацию для текущего столбца
+                  if (index === sortedColumnIndex) {
+                      header.classList.add(sortOrder === 'asc' ? 'sorted-asc' : 'sorted-desc');
+                  }
+              });
+          };
+
+          // Добавляем обработчики кликов для всех заголовков
+          headers.forEach((header, index) => {
+              header.addEventListener('click', () => sortByColumn(index));
+          });
+      });
+    </script>
+</head>
+<body>
+<!--    <header>-->
+<!--        <h1>Результаты прогона модели внешнего окружения</h1>-->
+<!--    </header>-->
+    <main>
+        <h1>Результаты прогона модели внешнего окружения "Городская дорожно-транспортная сеть"</h1>
+        <a href="/rao/view" class="btn btn-primary rounded-4 mt-3">Назад</a>
+        <table>
+            <thead>
+                <tr>
+                    <th>Имя ресурса</th>
+                    <th>Тип ресурса</th>
+                    <th>Трассировка</th>
+                    <th>Номер такта</th>
+                    <th>Параметры</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for resource in resources %}
+                <tr>
+                    <td>{{ resource.Имя_ресурса }}</td>
+                    <td>{{ resource.Имя_типа_ресурса }}</td>
+                    <td>{{ resource.Трассировка }}</td>
+                    <td>{{ resource.Номер_такта }}</td>
+                    <td>
+                        <ul>
+                            {% for param in resource.Параметры %}
+                            <li><strong>{{ param.Имя_параметра }}</strong>: {{ param.Значение }}</li>
+                            {% endfor %}
+                        </ul>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+<!--        <div class="button-container">-->
+<!--            <a href="/todo">На главную</a>-->
+<!--        </div>-->
+    </main>
+<!--    <footer>-->
+<!--        &copy; 2025 AT-AGENTS Solutions-->
+<!--    </footer>-->
+</body>
+</html>

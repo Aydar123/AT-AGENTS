@@ -15,7 +15,9 @@ import os
 import xmltodict
 
 AGENTS = json.load(open('./package/src/agents_config/AGENTS.json'))
-XML_FILE_PATH = "package/src/kb/Kutdusov_parking_kb_v3_3.xml"
+XML_FILE_PATH = "./package/src/kb/Kutdusov_parking_kb_v3_3.xml"
+RAO_XML_FILE_PATH = "./package/src/at_simulation_subsystem/rao_v3_3.xml"
+RAO_PROGON_XML_FILE_PATH = "./package/src/at_simulation_subsystem/ResourceParameters_v3_3.xml"
 SELECTED_RULES_FILE = "./package/src/agents_config/selected_rules.json"
 
 UPLOAD_FOLDER_KB = './package/src/kb/'
@@ -181,54 +183,6 @@ def index():
 @app.route('/editor', methods=['GET'])
 def get_editors():
     return render_template('base_editor.html')
-
-
-# @app.route('/editor', methods=['POST'])
-# def add_hla():
-#     try:
-#         # Инициализируем базу планов
-#         planning_base = {'HLA': [], 'steps': [], 'precond': [], 'effect': []}
-#
-#         # Получаем HLA переменные
-#         hla_var1 = request.form.getlist('hla_var1[]')  # Начальные состояния HLA
-#         hla_var2 = request.form.getlist('hla_var2[]')  # Конечные состояния HLA
-#
-#         if not hla_var1 or not hla_var2:
-#             return jsonify({'error': 'Должны быть заполнены все поля HLA.'}), 400
-#
-#         # Создаем список HLA-операций
-#         hla_actions = [f"Go({start}, {end})" for start, end in zip(hla_var1, hla_var2)]
-#
-#         # Обрабатываем шаги для каждой HLA-операции
-#         steps = []
-#         for i, hla_action in enumerate(hla_actions):
-#             # Получаем шаги для текущей HLA
-#             step_vars = request.form.getlist(f"step_vars[{i + 1}][]")  # Список шагов
-#             if len(step_vars) < 2:
-#                 return jsonify({'error': f'Для refinements {i + 1} должно быть как минимум два шага.'}), 400
-#
-#             # Формируем шаги Driver(StepN, StepN+1)
-#             formatted_steps = [
-#                 f"Driver({step_vars[j]}, {step_vars[j + 1]})"
-#                 for j in range(len(step_vars) - 1)
-#             ]
-#             steps.append(formatted_steps)
-#
-#             # Обновляем planning_base для текущей HLA
-#             create_planning_base(planning_base, hla_action, formatted_steps)
-#
-#         # Сохраняем обновленный planning_base
-#         save_path = "./package/src/planning_base/planning_base.json"
-#         with open(save_path, 'w') as f:
-#             json.dump(planning_base, f, indent=2)
-#
-#         return jsonify({'message': 'Planning base successfully created',
-#                         'planning_base': planning_base,
-#                         'action_base': create_action_base(planning_base)}), 200
-#
-#     except Exception as e:
-#         print(f"Error in add_hla: {e}")
-#         return jsonify({'error': f'Ошибка при обработке запроса: {str(e)}'}), 500
 
 
 @app.route('/editor', methods=['POST'])
@@ -406,6 +360,21 @@ def upload_plan_base_file():
         return jsonify({"message": "Файл успешно загружен", "task": "create_plan_base"}), 200
 
 
+@app.route('/rao/view')
+def display_resources():
+    # Парсинг XML
+    resources, actions, operations = rao_parse_xml(RAO_XML_FILE_PATH)
+
+    # Рендеринг HTML
+    return render_template('rao_view.html', resources=resources, actions=actions, operations=operations)
+
+
+@app.route('/rao/view/progon')
+def resources_view():
+    resources = rao_progon_xml_parse(RAO_PROGON_XML_FILE_PATH)
+    return render_template('rao_view_progon.html', resources=resources)
+
+
 # --------------------------------------------------
 # Глобальная переменная для хранения инициализированного компонента
 interaction_component: Optional[InteractionComponent] = None
@@ -416,8 +385,6 @@ async def get_results():
     """
     Возвращает результаты работы interact_once.
     """
-    # restart_at_agent_planner_component()
-
     global interaction_component
     if interaction_component is None:
         return jsonify({"error": "Results not yet available"}), 425
@@ -429,13 +396,15 @@ async def get_results():
     # Выполнение interact_once и сохранение результата
     agent = 'agent1'
     logger.info('Starting interaction component interact_once')
-    results_cache = await interaction_component.interact_once(agent=agent)
+    results_cache = await interaction_component.interact_many_times(agent=agent)
     logger.info(results_cache)
     print(f"Results cache updated: {results_cache}")
 
     if results_cache:
         return jsonify(results_cache)
+
     return jsonify({"error": "Results not yet available"}), 404
+
 
 async def main():
     logger.info('Starting')
@@ -462,7 +431,6 @@ async def main():
     await task
 
 
-
 if __name__ == '__main__':
     logging.basicConfig(level=logging.INFO)
     # if not os.path.exists('/var/run/web_main/'):
@@ -472,8 +440,3 @@ if __name__ == '__main__':
     #     f.write(str(os.getpid()))
 
     asyncio.run(main())
-
-
-
-
-
