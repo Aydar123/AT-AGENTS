@@ -103,11 +103,32 @@
             overflow-x: auto;
         }
 
+        /* Новый стиль для прогресс-бара */
+        #progressBarContainer {
+            display: none; /* Скрыт по умолчанию */
+            width: 30%;
+            background-color: #e0e0e0;
+            border-radius: 8px;
+            overflow: hidden;
+            margin: 20px auto;
+        }
+        #progressBar {
+            width: 0%;
+            height: 20px;
+            background-color: #007BFF;
+            transition: width 0.3s ease;
+        }
     </style>
 </head>
 <body>
     <h1>Совместное функционирование</h1>
     <button id="fetchResults">Запустить совместное функционирование</button>
+
+    <!-- Прогресс-бар -->
+    <div id="progressBarContainer"> <!-- Добавлено -->
+        <div id="progressBar"></div> <!-- Добавлено -->
+    </div>
+
     <div class="container">
         <a href="/todoOutput" class="btn">Назад</a>
         <div id="resultsContainer">
@@ -116,9 +137,24 @@
     </div>
 
     <script>
-        document.getElementById('fetchResults').addEventListener('click', async () => {
+        const fetchResultsButton = document.getElementById('fetchResults');
+        const progressBarContainer = document.getElementById('progressBarContainer'); // Добавлено
+        const progressBar = document.getElementById('progressBar'); // Добавлено
+
+        fetchResultsButton.addEventListener('click', async () => {
             try {
+                // Показать прогресс-бар
+                progressBarContainer.style.display = 'block'; // Добавлено
+                progressBar.style.width = '0%'; // Сброс прогресса
+
                 const response = await fetch('/api/results');
+
+                // Обновление прогресса
+                for (let i = 0; i <= 100; i += 20) { // Добавлено
+                    progressBar.style.width = `${i}%`;
+                    await new Promise(resolve => setTimeout(resolve, 200)); // Имитация времени загрузки
+                }
+
                 if (response.ok) {
                     const results = await response.json();
 
@@ -141,10 +177,10 @@
                                 <pre>${result.goal || "Not available"}</pre>
                                 <h3>Результат иерархического планирования</h3>
                                 <pre>${result.serialized_plan || "Not available"}</pre>
-                                <h3>Трасса вывода</h3>
-                                <pre>${JSON.stringify(result.solver_result, null, 2)}</pre>
                                 <h3>Рабочая память</h3>
                                 <pre>${JSON.stringify(result.wm_items, null, 2)}</pre>
+                                <h3>Трасса вывода</h3>
+                                <pre>${JSON.stringify(result.solver_result, null, 2)}</pre>
                             `;
                             section.appendChild(content);
 
@@ -161,6 +197,9 @@
             } catch (err) {
                 console.error(err);
                 showError("Ошибка при получении результатов.");
+            } finally {
+                // Скрыть прогресс-бар после завершения
+                progressBarContainer.style.display = 'none'; // Добавлено
             }
         });
 

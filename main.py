@@ -382,7 +382,7 @@ async def get_results():
     # Выполнение interact_once и сохранение результата
     agent = 'agent1'
     logger.info('Starting interaction component interact_once')
-    results_cache = await interaction_component.interact_once(agent=agent)
+    results_cache = await interaction_component.interact_many_times(agent=agent)
     logger.info(results_cache)
     print(f"Results cache updated: {results_cache}")
 
