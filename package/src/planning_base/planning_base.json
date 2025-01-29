@@ -1,51 +1,33 @@
 {
   "HLA": [
-    "Go(Home, Alternative_Parking)",
-    "Driver(Home, R1_start)",
-    "Driver(R1_start, R1_finish)",
-    "Driver(R1_finish, R2_start)",
-    "Driver(R2_start, R2_finish)",
-    "Driver(R2_finish, Queue)",
-    "Driver(Queue, EnterParking)",
-    "Driver(EnterParking, IncreaseCounter)",
-    "Driver(IncreaseCounter, Alternative_Parking)",
+    "Go(Home, Alt)",
+    "Driver(Home, r1)",
+    "Driver(r1, r2)",
+    "Driver(r2, queue)",
+    "Driver(queue, Alt)",
     "Go(Home, Parking)",
-    "Driver(Home, R1_start)",
-    "Driver(R1_start, R1_finish)",
-    "Driver(R1_finish, Queue)",
-    "Driver(Queue, EnterParking)",
-    "Driver(EnterParking, IncreaseCounter)",
-    "Driver(IncreaseCounter, Parking)"
+    "Driver(Home, r111)",
+    "Driver(r111, queue)",
+    "Driver(queue, pay)",
+    "Driver(pay, Parking)"
   ],
   "steps": [
     [
-      "Driver(Home, R1_start)",
-      "Driver(R1_start, R1_finish)",
-      "Driver(R1_finish, R2_start)",
-      "Driver(R2_start, R2_finish)",
-      "Driver(R2_finish, Queue)",
-      "Driver(Queue, EnterParking)",
-      "Driver(EnterParking, IncreaseCounter)",
-      "Driver(IncreaseCounter, Alternative_Parking)"
+      "Driver(Home, r1)",
+      "Driver(r1, r2)",
+      "Driver(r2, queue)",
+      "Driver(queue, Alt)"
     ],
-    [],
-    [],
-    [],
-    [],
     [],
     [],
     [],
     [],
     [
-      "Driver(Home, R1_start)",
-      "Driver(R1_start, R1_finish)",
-      "Driver(R1_finish, Queue)",
-      "Driver(Queue, EnterParking)",
-      "Driver(EnterParking, IncreaseCounter)",
-      "Driver(IncreaseCounter, Parking)"
+      "Driver(Home, r111)",
+      "Driver(r111, queue)",
+      "Driver(queue, pay)",
+      "Driver(pay, Parking)"
     ],
-    [],
-    [],
     [],
     [],
     [],
@@ -59,25 +41,13 @@
       "At(Home)"
     ],
     [
-      "At(R1_start)"
+      "At(r1)"
     ],
     [
-      "At(R1_finish)"
+      "At(r2)"
     ],
     [
-      "At(R2_start)"
-    ],
-    [
-      "At(R2_finish)"
-    ],
-    [
-      "At(Queue)"
-    ],
-    [
-      "At(EnterParking)"
-    ],
-    [
-      "At(IncreaseCounter)"
+      "At(queue)"
     ],
     [
       "At(Home)"
@@ -86,69 +56,45 @@
       "At(Home)"
     ],
     [
-      "At(R1_start)"
+      "At(r111)"
     ],
     [
-      "At(R1_finish)"
+      "At(queue)"
     ],
     [
-      "At(Queue)"
-    ],
-    [
-      "At(EnterParking)"
-    ],
-    [
-      "At(IncreaseCounter)"
+      "At(pay)"
     ]
   ],
   "effect": [
     [
-      "At(Alternative_Parking) & ~At(Home)"
+      "At(Alt) & ~At(Home)"
     ],
     [
-      "At(R1_start) & ~At(Home)"
+      "At(r1) & ~At(Home)"
     ],
     [
-      "At(R1_finish) & ~At(R1_start)"
+      "At(r2) & ~At(r1)"
     ],
     [
-      "At(R2_start) & ~At(R1_finish)"
+      "At(queue) & ~At(r2)"
     ],
     [
-      "At(R2_finish) & ~At(R2_start)"
-    ],
-    [
-      "At(Queue) & ~At(R2_finish)"
-    ],
-    [
-      "At(EnterParking) & ~At(Queue)"
-    ],
-    [
-      "At(IncreaseCounter) & ~At(EnterParking)"
-    ],
-    [
-      "At(Alternative_Parking) & ~At(IncreaseCounter)"
+      "At(Alt) & ~At(queue)"
     ],
     [
       "At(Parking) & ~At(Home)"
     ],
     [
-      "At(R1_start) & ~At(Home)"
+      "At(r111) & ~At(Home)"
     ],
     [
-      "At(R1_finish) & ~At(R1_start)"
+      "At(queue) & ~At(r111)"
     ],
     [
-      "At(Queue) & ~At(R1_finish)"
+      "At(pay) & ~At(queue)"
     ],
     [
-      "At(EnterParking) & ~At(Queue)"
-    ],
-    [
-      "At(IncreaseCounter) & ~At(EnterParking)"
-    ],
-    [
-      "At(Parking) & ~At(IncreaseCounter)"
+      "At(Parking) & ~At(pay)"
     ]
   ]
 }
