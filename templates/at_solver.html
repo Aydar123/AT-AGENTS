@@ -1,174 +1,4 @@
-<!--Без тактов-->
-<!--<!DOCTYPE html>-->
-<!--<html lang="en">-->
-<!--<head>-->
-<!--    <meta charset="UTF-8">-->
-<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
-<!--    <title>AT Solver Results</title>-->
-<!--    <style>-->
-<!--        body {-->
-<!--            font-family: Arial, sans-serif;-->
-<!--            margin: 20px;-->
-<!--            background-color: #f5f5f5;-->
-<!--        }-->
-<!--        h1 {-->
-<!--            text-align: center;-->
-<!--            color: #333;-->
-<!--        }-->
-<!--        .btn {-->
-<!--            display: inline-block;-->
-<!--            margin-bottom: 20px;-->
-<!--            padding: 10px 20px;-->
-<!--            font-size: 16px;-->
-<!--            color: white;-->
-<!--            background-color: #007BFF;-->
-<!--            text-decoration: none;-->
-<!--            border-radius: 4px;-->
-<!--            transition: background-color 0.3s;-->
-<!--        }-->
-<!--        .btn:hover {-->
-<!--            background-color: #0056b3;-->
-<!--        }-->
-<!--        button {-->
-<!--            display: block;-->
-<!--            margin: 20px auto;-->
-<!--            padding: 10px 20px;-->
-<!--            font-size: 16px;-->
-<!--            background-color: #007BFF;-->
-<!--            color: white;-->
-<!--            border: none;-->
-<!--            border-radius: 5px;-->
-<!--            cursor: pointer;-->
-<!--        }-->
-<!--        button:hover {-->
-<!--            background-color: #0056b3;-->
-<!--        }-->
-<!--        .container {-->
-<!--            max-width: 800px;-->
-<!--            margin: 0 auto;-->
-<!--            background: white;-->
-<!--            border-radius: 8px;-->
-<!--            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);-->
-<!--            padding: 20px;-->
-<!--        }-->
-<!--        .section {-->
-<!--            margin-bottom: 20px;-->
-<!--        }-->
-<!--        .section h2 {-->
-<!--            font-size: 18px;-->
-<!--            margin-bottom: 10px;-->
-<!--            color: #007BFF;-->
-<!--        }-->
-<!--        .section pre {-->
-<!--            background: #f0f0f0;-->
-<!--            padding: 10px;-->
-<!--            border-radius: 5px;-->
-<!--            overflow-x: auto;-->
-<!--        }-->
-<!--    </style>-->
-<!--</head>-->
-<!--<body>-->
-<!--    <h1>Совместное функционирование</h1>-->
-<!--    <button id="fetchResults">Запустить совместное функционирование</button>-->
-<!--    <div class="container">-->
-<!--        <a href="/todoOutput" class="btn">Назад</a>-->
-<!--        <div id="resultsContainer">-->
-<!--            <div class="section">-->
-<!--                <h2>Goal</h2>-->
-<!--                <pre id="goal">No results yet...</pre>-->
-<!--            </div>-->
-<!--            <div class="section">-->
-<!--                <h2>Serialized Plan</h2>-->
-<!--                <pre id="serializedPlan">No results yet...</pre>-->
-<!--            </div>-->
-<!--            <div class="section">-->
-<!--                <h2>Solver Result</h2>-->
-<!--                <pre id="solverResult">No results yet...</pre>-->
-<!--            </div>-->
-<!--            <div class="section">-->
-<!--                <h2>WM Items</h2>-->
-<!--                <pre id="wmItems">No results yet...</pre>-->
-<!--            </div>-->
-<!--        </div>-->
-<!--    </div>-->
-
-<!--    <script>-->
-<!--        document.getElementById('fetchResults').addEventListener('click', async () => {-->
-<!--            try {-->
-<!--                const response = await fetch('/api/results');-->
-<!--                if (response.ok) {-->
-<!--                    const results = await response.json();-->
-
-<!--                    const container = document.getElementById('resultsContainer');-->
-<!--                    container.innerHTML = ""; // Очистить перед обновлением-->
-
-<!--                    if (Array.isArray(results)) {-->
-<!--                        results.forEach((result, index) => {-->
-<!--                            const section = document.createElement('div');-->
-<!--                            section.className = 'section';-->
-
-<!--                            section.innerHTML = `-->
-<!--                                <h2>Такт ${index + 1}</h2>-->
-<!--                                <h3>Goal</h3>-->
-<!--                                <pre>${result.goal || "Not available"}</pre>-->
-<!--                                <h3>Serialized Plan</h3>-->
-<!--                                <pre>${result.serialized_plan || "Not available"}</pre>-->
-<!--                                <h3>Solver Result</h3>-->
-<!--                                <pre>${JSON.stringify(result.solver_result, null, 2)}</pre>-->
-<!--                                <h3>WM Items</h3>-->
-<!--                                <pre>${JSON.stringify(result.wm_items, null, 2)}</pre>-->
-<!--                            `;-->
-<!--                            container.appendChild(section);-->
-<!--                        });-->
-<!--                    } else {-->
-<!--                        container.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>Ожидался массив тактов, но получено: ${JSON.stringify(results)}</pre></div>`;-->
-<!--                    }-->
-<!--                } else {-->
-<!--                    showError("Результаты пока недоступны.");-->
-<!--                }-->
-<!--            } catch (err) {-->
-<!--                console.error(err);-->
-<!--                showError("Ошибка при получении результатов.");-->
-<!--            }-->
-<!--        });-->
-
-<!--        function showError(message) {-->
-<!--            const container = document.getElementById('resultsContainer');-->
-<!--            container.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>${message}</pre></div>`;-->
-<!--        }-->
-<!--    </script>-->
-
-<!--&lt;!&ndash;    <script>&ndash;&gt;-->
-<!--&lt;!&ndash;        document.getElementById('fetchResults').addEventListener('click', async () => {&ndash;&gt;-->
-<!--&lt;!&ndash;            try {&ndash;&gt;-->
-<!--&lt;!&ndash;                const response = await fetch('/api/results');&ndash;&gt;-->
-<!--&lt;!&ndash;                if (response.ok) {&ndash;&gt;-->
-<!--&lt;!&ndash;                    const results = await response.json();&ndash;&gt;-->
-
-<!--&lt;!&ndash;                    // Updating individual sections&ndash;&gt;-->
-<!--&lt;!&ndash;                    document.getElementById('goal').textContent = results.goal || "Not available";&ndash;&gt;-->
-<!--&lt;!&ndash;                    document.getElementById('serializedPlan').textContent = results.serialized_plan || "Not available";&ndash;&gt;-->
-<!--&lt;!&ndash;                    document.getElementById('solverResult').textContent = JSON.stringify(results.solver_result, null, 2);&ndash;&gt;-->
-<!--&lt;!&ndash;                    document.getElementById('wmItems').textContent = JSON.stringify(results.wm_items, null, 2);&ndash;&gt;-->
-<!--&lt;!&ndash;                } else {&ndash;&gt;-->
-<!--&lt;!&ndash;                    updateSectionsWithError("Results not available yet.");&ndash;&gt;-->
-<!--&lt;!&ndash;                }&ndash;&gt;-->
-<!--&lt;!&ndash;            } catch (err) {&ndash;&gt;-->
-<!--&lt;!&ndash;                console.error(err);&ndash;&gt;-->
-<!--&lt;!&ndash;                updateSectionsWithError("Error fetching results.");&ndash;&gt;-->
-<!--&lt;!&ndash;            }&ndash;&gt;-->
-<!--&lt;!&ndash;        });&ndash;&gt;-->
-
-<!--&lt;!&ndash;        function updateSectionsWithError(message) {&ndash;&gt;-->
-<!--&lt;!&ndash;            document.getElementById('goal').textContent = message;&ndash;&gt;-->
-<!--&lt;!&ndash;            document.getElementById('serializedPlan').textContent = message;&ndash;&gt;-->
-<!--&lt;!&ndash;            document.getElementById('solverResult').textContent = message;&ndash;&gt;-->
-<!--&lt;!&ndash;            document.getElementById('wmItems').textContent = message;&ndash;&gt;-->
-<!--&lt;!&ndash;        }&ndash;&gt;-->
-<!--&lt;!&ndash;    </script>&ndash;&gt;-->
-<!--</body>-->
-<!--</html>-->
-
+<!--ВЕРСИЯ РАБОТАЮЩАЯ-->
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -263,6 +93,23 @@
             align-items: center;
             cursor: pointer;
         }
+        .goal-section {
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+        .goal-section h3 {
+            font-size: 16px;
+            margin: 0 0 10px;
+        }
+        .goal-section pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
         .content {
             padding: 15px;
             display: none;
@@ -273,7 +120,6 @@
             border-radius: 5px;
             overflow-x: auto;
         }
-
         /* Новый стиль для прогресс-бара */
         #progressBarContainer {
             display: none; /* Скрыт по умолчанию */
@@ -309,28 +155,28 @@
 
     <script>
         const fetchResultsButton = document.getElementById('fetchResults');
-        const progressBarContainer = document.getElementById('progressBarContainer'); // Добавлено
-        const progressBar = document.getElementById('progressBar'); // Добавлено
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const progressBar = document.getElementById('progressBar');
+        const resultsContainer = document.getElementById('resultsContainer');
 
         fetchResultsButton.addEventListener('click', async () => {
             try {
                 // Показать прогресс-бар
-                progressBarContainer.style.display = 'block'; // Добавлено
-                progressBar.style.width = '0%'; // Сброс прогресса
+                progressBarContainer.style.display = 'block';
+                progressBar.style.width = '0%';
 
                 const response = await fetch('/api/results');
 
-                // Обновление прогресса
-                for (let i = 0; i <= 100; i += 20) { // Добавлено
+                // Имитация прогресса загрузки
+                for (let i = 0; i <= 100; i += 20) {
                     progressBar.style.width = `${i}%`;
-                    await new Promise(resolve => setTimeout(resolve, 200)); // Имитация времени загрузки
+                    await new Promise(resolve => setTimeout(resolve, 200));
                 }
 
                 if (response.ok) {
                     const results = await response.json();
 
-                    const container = document.getElementById('resultsContainer');
-                    container.innerHTML = ""; // Очистить перед обновлением
+                    resultsContainer.innerHTML = ""; // Очистить перед обновлением
 
                     if (Array.isArray(results)) {
                         results.forEach((result, index) => {
@@ -343,34 +189,65 @@
 
                             const content = document.createElement('div');
                             content.className = 'content';
-                            content.innerHTML = `
-                                <h3>Полученная цель</h3>
-                                <pre>${result.goal || "Not available"}</pre>
-                                <h3>Результат иерархического планирования</h3>
-                                <pre>${result.serialized_plan || "Not available"}</pre>
-                                <h3>Рабочая память</h3>
-                                <pre>${JSON.stringify(result.wm_items, null, 2)}</pre>
+
+                            // Добавляем каждую цель с соответствующим планом
+                            if (Array.isArray(result.goal)) {
+                                result.goal.forEach((goal, goalIndex) => {
+                                    const goalSection = document.createElement('div');
+                                    goalSection.className = 'goal-section';
+
+                                    const goalHeader = document.createElement('h3');
+                                    goalHeader.textContent = `Полученная цель ${goalIndex + 1}`;
+                                    goalSection.appendChild(goalHeader);
+
+                                    const goalContent = document.createElement('pre');
+                                    goalContent.textContent = JSON.stringify(goal, null, 2);
+                                    goalSection.appendChild(goalContent);
+
+                                    const planHeader = document.createElement('h3');
+                                    planHeader.textContent = 'Результат иерархического планирования';
+                                    goalSection.appendChild(planHeader);
+
+                                    const planContent = document.createElement('div');
+                                    planContent.className = 'plan-content';
+                                    // Если результат является строкой или массивом строк, заменяем символы новой строки на <br>
+                                    if (Array.isArray(result.serialized_plan[goalIndex])) {
+                                        planContent.innerHTML = result.serialized_plan[goalIndex].join('<br>');
+                                    } else {
+                                        planContent.innerHTML = result.serialized_plan[goalIndex].replace(/\n/g, '<br>');
+                                    }
+                                    goalSection.appendChild(planContent);
+
+                                    content.appendChild(goalSection);
+                                });
+                            } else {
+                                content.innerHTML = `<h3>Цели отсутствуют</h3>`;
+                            }
+
+                            // Добавляем остальные переменные
+                            content.innerHTML += `
                                 <h3>Трасса вывода</h3>
                                 <pre>${JSON.stringify(result.solver_result, null, 2)}</pre>
                             `;
+
                             section.appendChild(content);
 
                             header.addEventListener('click', () => toggleContent(content, header));
 
-                            container.appendChild(section);
+                            resultsContainer.appendChild(section);
                         });
                     } else {
-                        container.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>Ожидался массив тактов, но получено: ${JSON.stringify(results)}</pre></div>`;
+                        resultsContainer.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>Ожидался массив тактов, но получено: ${JSON.stringify(results)}</pre></div>`;
                     }
                 } else {
                     showError("Результаты пока недоступны.");
                 }
-            } catch (err) {
-                console.error(err);
+            } catch (error) {
+                console.error(error);
                 showError("Ошибка при получении результатов.");
             } finally {
                 // Скрыть прогресс-бар после завершения
-                progressBarContainer.style.display = 'none'; // Добавлено
+                progressBarContainer.style.display = 'none';
             }
         });
 
@@ -382,9 +259,204 @@
         }
 
         function showError(message) {
-            const container = document.getElementById('resultsContainer');
-            container.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>${message}</pre></div>`;
+            resultsContainer.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>${message}</pre></div>`;
         }
     </script>
 </body>
 </html>
+
+
+
+
+
+
+
+
+<!--<!DOCTYPE html>-->
+<!--<html lang="en">-->
+<!--<head>-->
+<!--    <meta charset="UTF-8">-->
+<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
+<!--    <title>AT Solver Results</title>-->
+<!--    <style>-->
+<!--        /* Стили остались без изменений */-->
+<!--        body {-->
+<!--            font-family: Arial, sans-serif;-->
+<!--            margin: 20px;-->
+<!--            background-color: #f5f5f5;-->
+<!--        }-->
+<!--        h1 {-->
+<!--            text-align: center;-->
+<!--            color: #333;-->
+<!--        }-->
+<!--        #fetchResults {-->
+<!--            display: block;-->
+<!--            margin: 20px auto;-->
+<!--            padding: 10px 20px;-->
+<!--            font-size: 16px;-->
+<!--            color: white;-->
+<!--            background-color: #007BFF;-->
+<!--            border: none;-->
+<!--            border-radius: 4px;-->
+<!--            cursor: pointer;-->
+<!--            transition: background-color 0.3s;-->
+<!--        }-->
+<!--        #fetchResults:hover {-->
+<!--            background-color: #0056b3;-->
+<!--        }-->
+<!--        .btn {-->
+<!--            display: inline-block;-->
+<!--            margin-bottom: 20px;-->
+<!--            padding: 10px 20px;-->
+<!--            font-size: 16px;-->
+<!--            color: white;-->
+<!--            background-color: #007BFF;-->
+<!--            text-decoration: none;-->
+<!--            border-radius: 4px;-->
+<!--            transition: background-color 0.3s;-->
+<!--        }-->
+<!--        .btn:hover {-->
+<!--            background-color: #0056b3;-->
+<!--        }-->
+<!--        .container {-->
+<!--            max-width: 800px;-->
+<!--            margin: 0 auto;-->
+<!--            background: white;-->
+<!--            border-radius: 8px;-->
+<!--            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);-->
+<!--            padding: 20px;-->
+<!--        }-->
+<!--        .section {-->
+<!--            margin-bottom: 20px;-->
+<!--            border: 1px solid #ddd;-->
+<!--            border-radius: 5px;-->
+<!--            overflow: hidden;-->
+<!--            background: #FFFFFF;-->
+<!--        }-->
+<!--        .section h2 {-->
+<!--            font-size: 18px;-->
+<!--            margin: 0;-->
+<!--            padding: 10px 15px;-->
+<!--            background-color: #e6e6e6;-->
+<!--            color: black;-->
+<!--            cursor: pointer;-->
+<!--        }-->
+<!--        .goal-section {-->
+<!--            margin: 10px 0;-->
+<!--            border: 1px solid #ccc;-->
+<!--            border-radius: 5px;-->
+<!--            padding: 10px;-->
+<!--            background: #f9f9f9;-->
+<!--        }-->
+<!--        .goal-section h3 {-->
+<!--            font-size: 16px;-->
+<!--            margin: 0 0 10px;-->
+<!--        }-->
+<!--        .goal-section pre {-->
+<!--            background: #f0f0f0;-->
+<!--            padding: 10px;-->
+<!--            border-radius: 5px;-->
+<!--            overflow-x: auto;-->
+<!--        }-->
+<!--        #progressBarContainer {-->
+<!--            display: none;-->
+<!--            width: 30%;-->
+<!--            background-color: #e0e0e0;-->
+<!--            border-radius: 8px;-->
+<!--            overflow: hidden;-->
+<!--            margin: 20px auto;-->
+<!--        }-->
+<!--        #progressBar {-->
+<!--            width: 0%;-->
+<!--            height: 20px;-->
+<!--            background-color: #007BFF;-->
+<!--            transition: width 0.3s ease;-->
+<!--        }-->
+<!--    </style>-->
+<!--</head>-->
+<!--<body>-->
+<!--    <h1>Совместное функционирование</h1>-->
+<!--    <button id="fetchResults">Запустить совместное функционирование</button>-->
+
+<!--    <div id="progressBarContainer">-->
+<!--        <div id="progressBar"></div>-->
+<!--    </div>-->
+
+<!--    <div class="container">-->
+<!--        <a href="/todoOutput" class="btn">Назад</a>-->
+<!--        <div id="resultsContainer">-->
+<!--            &lt;!&ndash; Результаты будут добавлены сюда &ndash;&gt;-->
+<!--        </div>-->
+<!--    </div>-->
+
+<!--    <script>-->
+<!--        const fetchResultsButton = document.getElementById('fetchResults');-->
+<!--        const progressBarContainer = document.getElementById('progressBarContainer');-->
+<!--        const progressBar = document.getElementById('progressBar');-->
+<!--        const resultsContainer = document.getElementById('resultsContainer');-->
+
+<!--        fetchResultsButton.addEventListener('click', async () => {-->
+<!--            try {-->
+<!--                progressBarContainer.style.display = 'block';-->
+<!--                progressBar.style.width = '0%';-->
+
+<!--                const response = await fetch('/api/results');-->
+
+<!--                for (let i = 0; i <= 100; i += 20) {-->
+<!--                    progressBar.style.width = `${i}%`;-->
+<!--                    await new Promise(resolve => setTimeout(resolve, 200));-->
+<!--                }-->
+
+<!--                if (response.ok) {-->
+<!--                    const results = await response.json();-->
+
+<!--                    resultsContainer.innerHTML = ""; // Очищаем контейнер перед добавлением новых данных-->
+
+<!--                    if (Array.isArray(results)) {-->
+<!--                        results.forEach((result, index) => {-->
+<!--                            const section = document.createElement('div');-->
+<!--                            section.className = 'section';-->
+
+<!--                            const header = document.createElement('h2');-->
+<!--&lt;!&ndash;                            header.textContent = `Такт ${index + 1}`;&ndash;&gt;-->
+<!--                            header.innerHTML = `Такт ${index + 1} <button><span>Развернуть</span><svg width="10" height="10" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="white"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6z"/></svg></button>`;-->
+<!--                            section.appendChild(header);-->
+
+<!--                            const content = document.createElement('div');-->
+<!--                            content.className = 'content';-->
+
+<!--                            result.goal.forEach((goal, goalIndex) => {-->
+<!--                                const goalSection = document.createElement('div');-->
+<!--                                goalSection.className = 'goal-section';-->
+
+<!--                                const goalHeader = document.createElement('h3');-->
+<!--                                goalHeader.textContent = `Цель ${goalIndex + 1}`;-->
+<!--                                goalSection.appendChild(goalHeader);-->
+
+<!--                                const goalContent = document.createElement('pre');-->
+<!--                                goalContent.textContent = JSON.stringify(goal, null, 2);-->
+<!--                                goalSection.appendChild(goalContent);-->
+
+<!--                                const planHeader = document.createElement('h3');-->
+<!--                                planHeader.textContent = 'План:';-->
+<!--                                goalSection.appendChild(planHeader);-->
+
+<!--                                const planContent = document.createElement('pre');-->
+<!--                                planContent.textContent = JSON.stringify(result.serialized_plan[goalIndex], null, 2);-->
+<!--                                goalSection.appendChild(planContent);-->
+
+<!--                                content.appendChild(goalSection);-->
+<!--                            });-->
+
+<!--                            section.appendChild(content);-->
+<!--                            resultsContainer.appendChild(section);-->
+<!--                        });-->
+<!--                    }-->
+<!--                }-->
+<!--            } catch (error) {-->
+<!--                console.error("Ошибка загрузки данных:", error);-->
+<!--            }-->
+<!--        });-->
+<!--    </script>-->
+<!--</body>-->
+<!--</html>-->

@@ -8,16 +8,21 @@ import jsonpickle
 import yaml
 import json
 import os
+from dotenv import load_dotenv
+load_dotenv()
+
 
 # import sys
 # sys.path.append('../..')
-
 # import sys
 # sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
 # from data import create_action_base
 
+CONFIG_YAML = os.getenv('CONFIG_YAML')
+PLANNING_BASE_PATH = os.getenv('PLANNING_BASE_PATH')
+SELECTED_RULES_FILE = os.getenv('SELECTED_RULES_FILE')
 
-with open("./package/src/config.yaml", "r") as config_file:
+with open(CONFIG_YAML, "r") as config_file:
     config = yaml.safe_load(config_file)
 
 connection_url = config["connection"]["url"]
@@ -30,7 +35,7 @@ class ATAgentPlanner(ATComponent):
 
     @property
     def planning_base(self):
-        with open('./package/src/planning_base/planning_base.json') as f:
+        with open(PLANNING_BASE_PATH) as f:
             return json.load(f)
 
     def create_action_base(self, planning_base):
@@ -81,7 +86,7 @@ class ATAgentPlanner(ATComponent):
         target_states = [action.effect for action in self._action_base]
         # goal_states = [a.action for a in self._action_base]
 
-        with open('./package/src/agents_config/selected_rules.json') as f:
+        with open(SELECTED_RULES_FILE) as f:
             selected_rules = json.load(f)
 
         # Динамическое создание словаря целей
@@ -129,10 +134,27 @@ class ATAgentPlanner(ATComponent):
         else:
             raise ValueError(f'Неизвестная цель: {at_solver_goal}')
 
+    # # В процессе
+    # def map_goal_to_states(self, at_solver_goal):
+    #     """Преобразует цель в начальное и конечное состояние, не вызывая ошибку при отсутствии данных"""
+    #     goal_info = self.goal_state_mapping.get(at_solver_goal,
+    #     {
+    #         "goal": f"{at_solver_goal}",
+    #         "initial_state": ["At(stub_initial_1)"],
+    #         "target_state": ["At(stub_target_1) & ~At(stub_initial_1)"]
+    #     })
+    #
+    #     return (
+    #         goal_info.get("goal", ""),
+    #         goal_info.get("initial_state", []),
+    #         goal_info.get("target_state", [])
+    #     )
+
     def format_decomposed_goal(self, decomposed_goal_list):
         # Проверяем, что входные данные — это список
         if not isinstance(decomposed_goal_list, list):
             return "Ошибка: Ожидался список шагов, получен другой формат."
+            # return "Внимание: вы не создали план для этой цели. Пожалуйста, перейдите в редактор БП и создайте его!"
 
         formatted_steps = []
         for step in decomposed_goal_list:
@@ -154,7 +176,6 @@ class ATAgentPlanner(ATComponent):
 
     @component_method
     def process_agent_goal(self, at_solver_goal):
-
         print(f'Цель: {at_solver_goal}')
         # print('Возможные варианты достижения цели:')
         # for sequence in RealWorldPlanningProblem.refinements(goal, self.planning_base):
@@ -163,6 +184,11 @@ class ATAgentPlanner(ATComponent):
 
         # Определение цели, начального и целевого состояния на основе входной цели
         goal, initial_state, target_state = self.map_goal_to_states(at_solver_goal)
+
+        # # Проверяем, что данные корректны
+        # if not goal or not isinstance(initial_state, list) or not isinstance(target_state, list):
+        #     print(f"Ошибка данных: goal={goal}, initial_state={initial_state}, target_state={target_state}")
+        #     return None  # Или другое поведение, если пропускать нельзя
 
         # Инициализация проблемы
         problem = RealWorldPlanningProblem(initial_state, target_state, [goal])

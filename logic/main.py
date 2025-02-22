@@ -7,14 +7,17 @@ import asyncio
 from typing import Dict
 import logging
 import json
+import os
+from dotenv import load_dotenv
+load_dotenv()
 
-AGENTS = json.load(open('./package/src/agents_config/AGENTS.json'))
-RESOURCE_PARAMETERS_PATH = './package/src/at_simulation_subsystem/ResourceParameters_v3_3.xml'
+AGENTS = json.load(open(os.getenv('AGENTS')))
+RESOURCE_PARAMETERS_PATH = os.getenv('RESOURCE_PARAMETERS_PATH')
+CONFIG_YAML = os.getenv('CONFIG_YAML')
 
 logger = logging.getLogger(__name__)
 
-
-with open("./package/src/config.yaml", "r") as config_file:
+with open(CONFIG_YAML, "r") as config_file:
     config = yaml.safe_load(config_file)
 
 connection_url = config["connection"]["url"]
@@ -222,6 +225,21 @@ class InteractionComponent(ATComponent):
             'serialized_plan': serialized_plan
         }
 
+    def extract_goals(self, data, key):
+        # Получаем шаги из data['trace']
+        steps = data.get('trace', {}).get('steps', [])
+        goals = []
+
+        # Проходим по каждому шагу
+        for step in steps:
+            # Пытаемся получить значение ключа key в final_wm_state
+            final_wm_state = step.get('final_wm_state', {})
+            if key in final_wm_state:
+                goal_content = final_wm_state[key].get('content')
+                if goal_content:
+                    goals.append(goal_content)
+
+        return goals
 
     @component_method
     async def interact_many_times(self, agent: str):
@@ -299,28 +317,46 @@ class InteractionComponent(ATComponent):
             for key, wm_item in solver_result.get('wm', {}).items():
                 logger.info(key, wm_item)
 
-            # пусть цели у нас хранятся в объекте Цели_Агента в его атрибуте "Цель"
-            key = 'Цели_агента.Цель'
-            goal_item = solver_result['wm'][key]
-
-            goal = goal_item['content']
-            logger.info(f'\nТаким образом, цель которую необходимо выполнить: {goal}\n')
-
-            # Отправляем цель планировщику и получаем результат
-            serialized_plan = await self.exec_external_method(
-                'ATAgentPlanner',
-                'process_agent_goal',
-                {'at_solver_goal': goal, 'agent': agent}
-            )
+            # # пусть цели у нас хранятся в объекте Цели_Агента в его атрибуте "Цель"
+            # key = 'Цели_агента.Цель'
+            # goal_item = solver_result['wm'][key]
+            # goal = goal_item['content']
+            # logger.info(f'\nТаким образом, цель которую необходимо выполнить: {goal}\n')
+            # # Отправляем цель планировщику и получаем результат
+            # serialized_plan = await self.exec_external_method(
+            #     'ATAgentPlanner',
+            #     'process_agent_goal',
+            #     {'at_solver_goal': goal, 'agent': agent}
+            # )
 
             logger.info(f'-------------------------Планировщик-------------------------')
-            logger.info(f"{serialized_plan}")
+            # logger.info(f"{serialized_plan}")
+
+            key = 'Цели_агента.Цель'
+            decomposed_plan_array = []
+            goals_array = self.extract_goals(solver_result, key)
+
+            # Обработка каждой цели
+            for goal in goals_array:
+                # Отправляем цель в планировщик
+                serialized_plan = await self.exec_external_method(
+                    'ATAgentPlanner',
+                    'process_agent_goal',
+                    {'at_solver_goal': goal, 'agent': agent}
+                )
+                decomposed_plan_array.append(serialized_plan)
+                logger.info(f'\nЦель "{goal}" отправлена в планировщик. Результат: {serialized_plan}')
+
+
+            logger.info(f'\nВсе найденные цели: {goals_array}\n')
+            logger.info(f'\nВсе планы: {decomposed_plan_array}\n')
+
 
             results_interact.append({
                 'solver_result': solver_result,
                 'wm_items': solver_result.get('wm', {}),
-                'goal': goal,
-                'serialized_plan': serialized_plan
+                'goal': goals_array, # эта переменная будет изменяться
+                'serialized_plan': decomposed_plan_array # эта переменная будет изменяться
             })
 
         logger.info(f'Все результаты тактов: {results_interact}')
