@@ -92,6 +92,23 @@
             align-items: center;
             cursor: pointer;
         }
+        .goal-section {
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 10px;
+            background: #f9f9f9;
+        }
+        .goal-section h3 {
+            font-size: 16px;
+            margin: 0 0 10px;
+        }
+        .goal-section pre {
+            background: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
         .content {
             padding: 15px;
             display: none;
@@ -102,7 +119,6 @@
             border-radius: 5px;
             overflow-x: auto;
         }
-
         /* Новый стиль для прогресс-бара */
         #progressBarContainer {
             display: none; /* Скрыт по умолчанию */
@@ -138,28 +154,28 @@
 
     <script>
         const fetchResultsButton = document.getElementById('fetchResults');
-        const progressBarContainer = document.getElementById('progressBarContainer'); // Добавлено
-        const progressBar = document.getElementById('progressBar'); // Добавлено
+        const progressBarContainer = document.getElementById('progressBarContainer');
+        const progressBar = document.getElementById('progressBar');
+        const resultsContainer = document.getElementById('resultsContainer');
 
         fetchResultsButton.addEventListener('click', async () => {
             try {
                 // Показать прогресс-бар
-                progressBarContainer.style.display = 'block'; // Добавлено
-                progressBar.style.width = '0%'; // Сброс прогресса
+                progressBarContainer.style.display = 'block';
+                progressBar.style.width = '0%';
 
                 const response = await fetch('/api/results');
 
-                // Обновление прогресса
-                for (let i = 0; i <= 100; i += 20) { // Добавлено
+                // Имитация прогресса загрузки
+                for (let i = 0; i <= 100; i += 20) {
                     progressBar.style.width = `${i}%`;
-                    await new Promise(resolve => setTimeout(resolve, 200)); // Имитация времени загрузки
+                    await new Promise(resolve => setTimeout(resolve, 200));
                 }
 
                 if (response.ok) {
                     const results = await response.json();
 
-                    const container = document.getElementById('resultsContainer');
-                    container.innerHTML = ""; // Очистить перед обновлением
+                    resultsContainer.innerHTML = ""; // Очистить перед обновлением
 
                     if (Array.isArray(results)) {
                         results.forEach((result, index) => {
@@ -172,34 +188,65 @@
 
                             const content = document.createElement('div');
                             content.className = 'content';
-                            content.innerHTML = `
-                                <h3>Полученная цель</h3>
-                                <pre>${result.goal || "Not available"}</pre>
-                                <h3>Результат иерархического планирования</h3>
-                                <pre>${result.serialized_plan || "Not available"}</pre>
-                                <h3>Рабочая память</h3>
-                                <pre>${JSON.stringify(result.wm_items, null, 2)}</pre>
+
+                            // Добавляем каждую цель с соответствующим планом
+                            if (Array.isArray(result.goal)) {
+                                result.goal.forEach((goal, goalIndex) => {
+                                    const goalSection = document.createElement('div');
+                                    goalSection.className = 'goal-section';
+
+                                    const goalHeader = document.createElement('h3');
+                                    goalHeader.textContent = `Полученная цель ${goalIndex + 1}`;
+                                    goalSection.appendChild(goalHeader);
+
+                                    const goalContent = document.createElement('pre');
+                                    goalContent.textContent = JSON.stringify(goal, null, 2);
+                                    goalSection.appendChild(goalContent);
+
+                                    const planHeader = document.createElement('h3');
+                                    planHeader.textContent = 'Результат иерархического планирования';
+                                    goalSection.appendChild(planHeader);
+
+                                    const planContent = document.createElement('div');
+                                    planContent.className = 'plan-content';
+                                    // Если результат является строкой или массивом строк, заменяем символы новой строки на <br>
+                                    if (Array.isArray(result.serialized_plan[goalIndex])) {
+                                        planContent.innerHTML = result.serialized_plan[goalIndex].join('<br>');
+                                    } else {
+                                        planContent.innerHTML = result.serialized_plan[goalIndex].replace(/\n/g, '<br>');
+                                    }
+                                    goalSection.appendChild(planContent);
+
+                                    content.appendChild(goalSection);
+                                });
+                            } else {
+                                content.innerHTML = `<h3>Цели отсутствуют</h3>`;
+                            }
+
+                            // Добавляем остальные переменные
+                            content.innerHTML += `
                                 <h3>Трасса вывода</h3>
                                 <pre>${JSON.stringify(result.solver_result, null, 2)}</pre>
                             `;
+
                             section.appendChild(content);
 
                             header.addEventListener('click', () => toggleContent(content, header));
 
-                            container.appendChild(section);
+                            resultsContainer.appendChild(section);
                         });
                     } else {
-                        container.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>Ожидался массив тактов, но получено: ${JSON.stringify(results)}</pre></div>`;
+                        resultsContainer.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>Ожидался массив тактов, но получено: ${JSON.stringify(results)}</pre></div>`;
                     }
                 } else {
                     showError("Результаты пока недоступны.");
                 }
-            } catch (err) {
-                console.error(err);
+            } catch (error) {
+                console.error(error);
                 showError("Ошибка при получении результатов.");
             } finally {
                 // Скрыть прогресс-бар после завершения
-                progressBarContainer.style.display = 'none'; // Добавлено
+                progressBarContainer.style.display = 'none';
             }
         });
 
@@ -211,8 +258,7 @@
         }
 
         function showError(message) {
-            const container = document.getElementById('resultsContainer');
-            container.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>${message}</pre></div>`;
+            resultsContainer.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>${message}</pre></div>`;
         }
     </script>
 </body>

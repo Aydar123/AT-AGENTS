@@ -2,12 +2,12 @@
     "agent1": {
         "ATSolver": {
             "kb": {
-                "path": "/package/src/kb/Kutdusov_parking_kb_v3_3.xml"
+                "path": "/package/src/kb/Kutdusov_parking_kb_v3_4.xml"
             }
         },
         "ATTemporalSolver": {
             "kb": {
-                "path": "/package/src/kb/Kutdusov_parking_kb_v3_3.xml"
+                "path": "/package/src/kb/Kutdusov_parking_kb_v3_4.xml"
             }
         },
         "ATSimulationSubsystem": {}
@@ -15,12 +15,12 @@
     "agent2": {
         "ATSolver": {
             "kb": {
-                "path": "/package/src/kb/Kutdusov_parking_kb_v3_3.xml"
+                "path": "/package/src/kb/Kutdusov_parking_kb_v3_4.xml"
             }
         },
         "ATTemporalSolver": {
             "kb": {
-                "path": "/package/src/kb/Kutdusov_parking_kb_v3_3.xml"
+                "path": "/package/src/kb/Kutdusov_parking_kb_v3_4.xml"
             }
         },
         "ATSimulationSubsystem": {}
@@ -28,12 +28,12 @@
     "agent3": {
         "ATSolver": {
             "kb": {
-                "path": "/package/src/kb/Kutdusov_parking_kb_v3_3.xml"
+                "path": "/package/src/kb/Kutdusov_parking_kb_v3_4.xml"
             }
         },
         "ATTemporalSolver": {
             "kb": {
-                "path": "/package/src/kb/Kutdusov_parking_kb_v3_3.xml"
+                "path": "/package/src/kb/Kutdusov_parking_kb_v3_4.xml"
             }
         },
         "ATSimulationSubsystem": {}

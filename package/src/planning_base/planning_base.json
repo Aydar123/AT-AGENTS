@@ -1,39 +1,54 @@
 {
   "HLA": [
+    "Go(Call, Parking)",
+    "Driver(Call, send_address)",
+    "Driver(send_address, Parking)",
     "Go(Home, Alt)",
     "Driver(Home, r1)",
-    "Driver(r1, r2)",
-    "Driver(r2, queue)",
-    "Driver(queue, Alt)",
+    "Driver(r1, Alt)",
     "Go(Home, Parking)",
     "Driver(Home, r111)",
-    "Driver(r111, queue)",
+    "Driver(r111, r222)",
+    "Driver(r222, queue)",
     "Driver(queue, pay)",
     "Driver(pay, Parking)"
   ],
   "steps": [
     [
-      "Driver(Home, r1)",
-      "Driver(r1, r2)",
-      "Driver(r2, queue)",
-      "Driver(queue, Alt)"
+      "Driver(Call, send_address)",
+      "Driver(send_address, Parking)"
     ],
     [],
     [],
+    [
+      "Driver(Home, r1)",
+      "Driver(r1, Alt)"
+    ],
     [],
     [],
     [
       "Driver(Home, r111)",
-      "Driver(r111, queue)",
+      "Driver(r111, r222)",
+      "Driver(r222, queue)",
       "Driver(queue, pay)",
       "Driver(pay, Parking)"
     ],
     [],
     [],
     [],
+    [],
     []
   ],
   "precond": [
+    [
+      "At(Call)"
+    ],
+    [
+      "At(Call)"
+    ],
+    [
+      "At(send_address)"
+    ],
     [
       "At(Home)"
     ],
@@ -42,12 +57,6 @@
     ],
     [
       "At(r1)"
-    ],
-    [
-      "At(r2)"
-    ],
-    [
-      "At(queue)"
     ],
     [
       "At(Home)"
@@ -59,6 +68,9 @@
       "At(r111)"
     ],
     [
+      "At(r222)"
+    ],
+    [
       "At(queue)"
     ],
     [
@@ -67,19 +79,22 @@
   ],
   "effect": [
     [
+      "At(Parking) & ~At(Call)"
+    ],
+    [
+      "At(send_address) & ~At(Call)"
+    ],
+    [
+      "At(Parking) & ~At(send_address)"
+    ],
+    [
       "At(Alt) & ~At(Home)"
     ],
     [
       "At(r1) & ~At(Home)"
     ],
     [
-      "At(r2) & ~At(r1)"
-    ],
-    [
-      "At(queue) & ~At(r2)"
-    ],
-    [
-      "At(Alt) & ~At(queue)"
+      "At(Alt) & ~At(r1)"
     ],
     [
       "At(Parking) & ~At(Home)"
@@ -88,7 +103,10 @@
       "At(r111) & ~At(Home)"
     ],
     [
-      "At(queue) & ~At(r111)"
+      "At(r222) & ~At(r111)"
+    ],
+    [
+      "At(queue) & ~At(r222)"
     ],
     [
       "At(pay) & ~At(queue)"

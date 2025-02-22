@@ -8,9 +8,15 @@ import jsonpickle
 import yaml
 import json
 import os
+from dotenv import load_dotenv
+load_dotenv()
 
 
-with open("/package/src/config.yaml", "r") as config_file:
+CONFIG_YAML = os.getenv('CONFIG_YAML')
+PLANNING_BASE_PATH = os.getenv('PLANNING_BASE_PATH')
+SELECTED_RULES_FILE = os.getenv('SELECTED_RULES_FILE')
+
+with open(CONFIG_YAML, "r") as config_file:
     config = yaml.safe_load(config_file)
 
 connection_url = config["connection"]["url"]
@@ -23,7 +29,7 @@ class ATAgentPlanner(ATComponent):
 
     @property
     def planning_base(self):
-        with open('/package/src/planning_base/planning_base.json') as f:
+        with open(PLANNING_BASE_PATH) as f:
             return json.load(f)
 
     def create_action_base(self, planning_base):
@@ -46,7 +52,7 @@ class ATAgentPlanner(ATComponent):
         target_states = [action.effect for action in self._action_base]
         # goal_states = [a.action for a in self._action_base]
 
-        with open('/package/src/agents_config/selected_rules.json') as f:
+        with open(SELECTED_RULES_FILE) as f:
             selected_rules = json.load(f)
 
         # Динамическое создание словаря целей

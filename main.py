@@ -15,17 +15,19 @@ from typing import Optional
 from werkzeug.utils import secure_filename
 import xmltodict
 import xml.etree.ElementTree as ET
+from dotenv import load_dotenv
+load_dotenv()
 
+AGENTS = json.load(open(os.getenv('AGENTS')))
+KB_XML_FILE_PATH = os.getenv('KB_XML_FILE_PATH')
+RAO_XML_FILE_PATH = os.getenv('RAO_XML_FILE_PATH')
+RAO_PROGON_XML_FILE_PATH = os.getenv('RESOURCE_PARAMETERS_PATH')
+SELECTED_RULES_FILE = os.getenv('SELECTED_RULES_FILE')
+PLANNING_BASE_PATH = os.getenv('PLANNING_BASE_PATH')
 
-AGENTS = json.load(open('/package/src/agents_config/AGENTS.json'))
-XML_FILE_PATH = "/package/src/kb/Kutdusov_parking_kb_v3_3.xml"
-RAO_XML_FILE_PATH = "/package/src/at_simulation_subsystem/rao_v3_3.xml"
-RAO_PROGON_XML_FILE_PATH = "/package/src/at_simulation_subsystem/ResourceParameters_v3_3.xml"
-SELECTED_RULES_FILE = "/package/src/agents_config/selected_rules.json"
-
-UPLOAD_FOLDER_KB = '/package/src/kb/'
-UPLOAD_FOLDER_AT_SIM_SUB = '/package/src/at_simulation_subsystem/subsystem_model/'
-UPLOAD_FOLDER_PB = '/package/src/planning_base/'
+UPLOAD_FOLDER_KB = os.getenv('UPLOAD_FOLDER_KB')
+UPLOAD_FOLDER_AT_SIM_SUB = os.getenv('UPLOAD_FOLDER_AT_SIM_SUB')
+UPLOAD_FOLDER_PB = os.getenv('UPLOAD_FOLDER_PB')
 
 tasks = {
     "create_knowledge_base": {"checked": False},
@@ -35,7 +37,8 @@ tasks = {
 
 logger = logging.getLogger(__name__)
 
-with open("/package/src/config.yaml", "r") as config_file:
+CONFIG_YAML = os.getenv('CONFIG_YAML')
+with open(CONFIG_YAML, "r") as config_file:
     config = yaml.safe_load(config_file)
 connection_url = config["connection"]["url"]
 
@@ -223,8 +226,7 @@ def add_hla():
             create_planning_base(planning_base, hla_action, formatted_steps)
 
         # Сохраняем обновленный planning_base
-        planning_base_path = "/package/src/planning_base/planning_base.json"
-        with open(planning_base_path, 'w') as f:
+        with open(PLANNING_BASE_PATH, 'w') as f:
             json.dump(planning_base, f, indent=2)
 
         return render_template('base_results.html', planning_base=planning_base)
@@ -237,7 +239,7 @@ def add_hla():
 @app.route("/get/rules", methods=["GET"])
 def get_rules():
     # Загружаем XML-файл
-    tree = ET.parse(XML_FILE_PATH)
+    tree = ET.parse(KB_XML_FILE_PATH)
     root = tree.getroot()
 
     # Извлекаем правила из тега <rules>
@@ -260,10 +262,10 @@ def save_selected_rules():
     selected_rules_ids = request.json['selected_rules']  # Получаем список выбранных правил (id)
 
     # Загружаем XML-файл
-    if not os.path.exists(XML_FILE_PATH):
-        return jsonify({"error": f"Файл {XML_FILE_PATH} не найден"}), 500
+    if not os.path.exists(KB_XML_FILE_PATH):
+        return jsonify({"error": f"Файл {KB_XML_FILE_PATH} не найден"}), 500
 
-    tree = ET.parse(XML_FILE_PATH)
+    tree = ET.parse(KB_XML_FILE_PATH)
     root = tree.getroot()
 
     # Создаём структуру для выбранных правил

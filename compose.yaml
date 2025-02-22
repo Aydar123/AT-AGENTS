@@ -88,25 +88,6 @@ services:
       timeout: 3s
       retries: 30
 
-#  interaction_component:
-#    <<: *prototype
-#    container_name: interaction_component_at_parking
-#    command: poetry run python logic/main.py rabbit -c /package/src/config.yaml
-#    depends_on:
-#      solver:
-#        condition: service_healthy
-#      temporal_solver:
-#        condition: service_healthy
-#      blackboard:
-#        condition: service_healthy
-#      planner:
-#        condition: service_healthy
-#    healthcheck:
-#      test: "ps -p $$(cat /var/run/interaction_component/pidfile.pid) || exit 1"
-#      interval: 1s
-#      timeout: 3s
-#      retries: 30
-
   web_debugger:
     <<: *prototype
     container_name: web_debugger
