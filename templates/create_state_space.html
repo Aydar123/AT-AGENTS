@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Space Planner</title>
+    <script>
+        let stateSpaces = [];
+
+        function addStateSpace() {
+            let name = prompt("Enter state space name:");
+            if (name) {
+                stateSpaces.push({ name, action_templates: [], goal_positions: {}, initial_positions: { Drivers: {}, Parking_locations: {} } });
+                updateStateSpacesList();
+            }
+        }
+
+        function updateStateSpacesList() {
+            let list = document.getElementById("stateSpacesList");
+            list.innerHTML = "";
+            stateSpaces.forEach((space, index) => {
+                let li = document.createElement("li");
+                li.textContent = `${space.name} (Actions: ${space.action_templates.length})`;
+                li.onclick = () => editStateSpace(index);
+                list.appendChild(li);
+            });
+        }
+
+        function editStateSpace(index) {
+            let space = stateSpaces[index];
+            let jsonData = JSON.stringify(space, null, 4);
+            document.getElementById("editor").value = jsonData;
+            document.getElementById("saveBtn").onclick = () => saveStateSpace(index);
+        }
+
+        function saveStateSpace(index) {
+            try {
+                stateSpaces[index] = JSON.parse(document.getElementById("editor").value);
+                alert("State space saved successfully!");
+                updateStateSpacesList();
+            } catch (e) {
+                alert("Invalid JSON format.");
+            }
+        }
+
+        function downloadJSON() {
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stateSpaces, null, 4));
+            let downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "state_spaces.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+    </script>
+</head>
+<body>
+    <h1>State Space Planner</h1>
+    <button onclick="addStateSpace()">Add State Space</button>
+    <button onclick="downloadJSON()">Download JSON</button>
+    <h2>State Spaces</h2>
+    <ul id="stateSpacesList"></ul>
+    <h2>Edit State Space</h2>
+    <textarea id="editor" rows="15" cols="80"></textarea><br>
+    <button id="saveBtn">Save</button>
+</body>
+</html>

@@ -41,7 +41,8 @@ with open(CONFIG_YAML, "r") as config_file:
 connection_url = config["connection"]["url"]
 
 app = Flask(__name__)
-app.secret_key = "SECRET_KEY"
+# Знаю, что лучше такой "секрет" хранить в .env, но в рамках прототипа и установки для "коллег" оставлю так...
+app.secret_key = "NO_SECRET_KEY"
 app.config['UPLOAD_FOLDER_KB'] = UPLOAD_FOLDER_KB
 app.config['UPLOAD_FOLDER_AT_SIM_SUB'] = UPLOAD_FOLDER_AT_SIM_SUB
 app.config['UPLOAD_FOLDER_PB'] = UPLOAD_FOLDER_PB
@@ -187,6 +188,11 @@ def index():
 @app.route('/editor', methods=['GET'])
 def get_editors():
     return render_template('base_editor.html')
+
+
+@app.route('/state/space', methods=['GET'])
+def get_state_spaces():
+    return render_template('create_state_space.html')
 
 
 @app.route('/editor', methods=['POST'])

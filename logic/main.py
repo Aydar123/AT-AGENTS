@@ -59,8 +59,9 @@ class InteractionComponent(ATComponent):
 
     async def configure_agent_planner(self, agent: str):
         # Проверка, что планировщик доступен
+        # if not await self.check_external_registered('StateSpacePlanning'):
         if not await self.check_external_registered('ATAgentPlanner'):
-            raise ReferenceError(f'Component "ATAgentPlanner" is not registered')
+            raise ReferenceError(f'Component "StateSpacePlanning" is not registered')
 
     def _items_from_solver_result(self, solver_result):
         return [
@@ -101,6 +102,7 @@ class InteractionComponent(ATComponent):
 
         return simulation_results
 
+    # no use
     @component_method
     async def interact_once(self, agent: str):
 
@@ -205,6 +207,7 @@ class InteractionComponent(ATComponent):
 
         # Отправляем цель планировщику и получаем результат
         serialized_plan = await self.exec_external_method(
+            # 'StateSpacePlanning',
             'ATAgentPlanner',
             'process_agent_goal',
             {'at_solver_goal': goal, 'agent': agent}
@@ -240,6 +243,7 @@ class InteractionComponent(ATComponent):
                     goals.append(goal_content)
 
         return goals
+
 
     @component_method
     async def interact_many_times(self, agent: str):
@@ -340,6 +344,7 @@ class InteractionComponent(ATComponent):
             for goal in goals_array:
                 # Отправляем цель в планировщик
                 serialized_plan = await self.exec_external_method(
+                    # 'StateSpacePlanning',
                     'ATAgentPlanner',
                     'process_agent_goal',
                     {'at_solver_goal': goal, 'agent': agent}
@@ -363,7 +368,7 @@ class InteractionComponent(ATComponent):
         return results_interact
 
 
-# пример использования компонента
+# Пример использования компонента
 async def main():
     # ------- служебная инициализация компонента --------
     # logger.info("OK 1")

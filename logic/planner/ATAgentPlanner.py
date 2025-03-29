@@ -27,6 +27,7 @@ with open(CONFIG_YAML, "r") as config_file:
 
 connection_url = config["connection"]["url"]
 
+
 class ATAgentPlanner(ATComponent):
     def __init__(self, connection_parameters: ConnectionParameters, *args, **kwargs):
         super().__init__(connection_parameters, *args, **kwargs)
@@ -211,6 +212,7 @@ class ATAgentPlanner(ATComponent):
         print(f'Serialized Plan: {formatted_plan}')
 
         return formatted_plan
+
 
 async def main():
     connection_parameters = ConnectionParameters(connection_url) # Параметры подключения к RabbitMQ
