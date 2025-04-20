@@ -59,8 +59,8 @@ class InteractionComponent(ATComponent):
 
     async def configure_agent_planner(self, agent: str):
         # Проверка, что планировщик доступен
-        # if not await self.check_external_registered('StateSpacePlanning'):
-        if not await self.check_external_registered('ATAgentPlanner'):
+        if not await self.check_external_registered('StateSpacePlanning'):
+        # if not await self.check_external_registered('ATAgentPlanner'):
             raise ReferenceError(f'Component "StateSpacePlanning" is not registered')
 
     def _items_from_solver_result(self, solver_result):
@@ -76,7 +76,6 @@ class InteractionComponent(ATComponent):
         ]
 
     @component_method
-    # async def configure_components(self, agents: Dict) -> int:
     async def configure_components(self, agents: Dict):
         for agent in agents:
             await self.configure_at_solver(agent)
@@ -102,131 +101,6 @@ class InteractionComponent(ATComponent):
 
         return simulation_results
 
-    # no use
-    @component_method
-    async def interact_once(self, agent: str):
-
-        # Вызов подсистемы имитационного моделирования, но она пока не реализована,
-        # поэтому просто используем моковые данные
-        simulation_results = {
-            0: [
-                {'ref': 'Парковка.Процент_заполнения', 'value': '57'},
-                {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_парковку'},
-                {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_альтернативную_парковку'}
-            ],
-
-            1: [
-                {'ref': 'Парковка.Процент_заполнения', 'value': '75'},
-                {'ref': 'Альтернативная_парковка.Расстояние', 'value': '1324'},
-                {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_парковку'},
-                {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_альтернативную_парковку'}
-            ],
-
-            2: [
-                {'ref': 'Парковка.Процент_заполнения', 'value': '27'},
-                {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_парковку'},
-                {'ref': 'Транспортное_средство.Состояние_тс', 'value': 'Едет_на_альтернативную_парковку'}
-            ],
-        }
-
-        # Обновление общей рабочей памяти
-        await self.exec_external_method(
-            'ATBlackBoard',
-            'set_items',
-            {'items': simulation_results[self.current_tact % len(simulation_results.keys())]},
-            auth_token=agent
-        )
-
-        # обновление рабочей памяти для темпорального решателя
-        await self.exec_external_method(
-            'ATTemporalSolver',
-            'update_wm_from_bb',
-            {},
-            auth_token=agent
-        )
-
-        # Запуск темпорального решателя
-        temporal_result = await self.exec_external_method(
-            'ATTemporalSolver',
-            'process_tact',
-            {},
-            auth_token=agent
-        )
-
-        # Обновление общей рабочей памяти результатом работы темпорального решателя
-        temporal_items = [{'ref': key, 'value': value}
-                          for key, value in temporal_result.get('signified', {}).items()]
-        await self.exec_external_method(
-            'ATBlackBoard',
-            'set_items',
-            {'items': temporal_items},
-            auth_token=agent
-        )
-
-        # Обновление рабочей памяти решателя
-        await self.exec_external_method(
-            'ATSolver',
-            'update_wm_from_bb',
-            {},
-            auth_token=agent
-        )
-
-        # Запуск решателя
-        solver_result = await self.exec_external_method(
-            'ATSolver',
-            'run',
-            {},
-            auth_token=agent
-        )
-
-        # Обновление общей рабочей памяти результатом решателя
-        solver_items = self._items_from_solver_result(solver_result)
-
-        await self.exec_external_method(
-            'ATBlackBoard',
-            'set_items',
-            {'items': solver_items},
-            auth_token=agent
-        )
-
-        logger.info(f'-------------------------АТ-Решатель-------------------------')
-
-        logger.info(f'\nРабочая память:{solver_result}\n')
-        logger.info(f'Результат решателя:')
-
-        # напечатаем результат решателя
-        for key, wm_item in solver_result.get('wm', {}).items():
-            logger.info(key, wm_item)
-
-        # пусть цели у нас хранятся в объекте Цели_Агента в его атрибуте "Цель"
-        key = 'Цели_агента.Цель'
-        goal_item = solver_result['wm'][key]
-
-        goal = goal_item['content']
-        logger.info(f'\nТаким образом, цель которую необходимо выполнить: {goal}\n')
-
-        # Отправляем цель планировщику и получаем результат
-        serialized_plan = await self.exec_external_method(
-            # 'StateSpacePlanning',
-            'ATAgentPlanner',
-            'process_agent_goal',
-            {'at_solver_goal': goal, 'agent': agent}
-        )
-
-        logger.info(f'-------------------------Планировщик-------------------------')
-        logger.info(f"{serialized_plan}")
-
-        self.current_tact += 1
-        logger.info(f"Текущий такт: {self.current_tact}")
-
-        # Сохраняем результат текущего такта
-        return {
-            'tact': self.current_tact,
-            'solver_result': solver_result,
-            'wm_items': solver_result.get('wm', {}),
-            'goal': goal,
-            'serialized_plan': serialized_plan
-        }
 
     def extract_goals(self, data, key):
         # Получаем шаги из data['trace']
@@ -250,6 +124,12 @@ class InteractionComponent(ATComponent):
         results_interact = []
 
         simulation_results = self.parse_simulation_results(RESOURCE_PARAMETERS_PATH)
+
+        global_generated_plan = await self.exec_external_method(
+            'StateSpacePlanning',
+            'simple_process_agent_goal',
+            {'agent': agent}
+        )
 
         for i in simulation_results:
             # Обновление общей рабочей памяти
@@ -321,18 +201,6 @@ class InteractionComponent(ATComponent):
             for key, wm_item in solver_result.get('wm', {}).items():
                 logger.info(key, wm_item)
 
-            # # пусть цели у нас хранятся в объекте Цели_Агента в его атрибуте "Цель"
-            # key = 'Цели_агента.Цель'
-            # goal_item = solver_result['wm'][key]
-            # goal = goal_item['content']
-            # logger.info(f'\nТаким образом, цель которую необходимо выполнить: {goal}\n')
-            # # Отправляем цель планировщику и получаем результат
-            # serialized_plan = await self.exec_external_method(
-            #     'ATAgentPlanner',
-            #     'process_agent_goal',
-            #     {'at_solver_goal': goal, 'agent': agent}
-            # )
-
             logger.info(f'-------------------------Планировщик-------------------------')
             # logger.info(f"{serialized_plan}")
 
@@ -344,8 +212,8 @@ class InteractionComponent(ATComponent):
             for goal in goals_array:
                 # Отправляем цель в планировщик
                 serialized_plan = await self.exec_external_method(
-                    # 'StateSpacePlanning',
-                    'ATAgentPlanner',
+                    'StateSpacePlanning',
+                    # 'ATAgentPlanner',
                     'process_agent_goal',
                     {'at_solver_goal': goal, 'agent': agent}
                 )
@@ -359,9 +227,11 @@ class InteractionComponent(ATComponent):
 
             results_interact.append({
                 'solver_result': solver_result,
+                'temporal_result': temporal_result,
                 'wm_items': solver_result.get('wm', {}),
-                'goal': goals_array, # эта переменная будет изменяться
-                'serialized_plan': decomposed_plan_array # эта переменная будет изменяться
+                'goal': goals_array,
+                'serialized_plan': decomposed_plan_array,
+                'global_generated_plan': global_generated_plan
             })
 
         logger.info(f'Все результаты тактов: {results_interact}')

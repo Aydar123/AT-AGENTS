@@ -19,7 +19,7 @@ python3 -m venv .venv
 ### 2.2: Активируйте venv
 ##### 2.2.1: Windows:
 ```bash
-venv\Scripts\activate
+.venv\Scripts\activate
 ```
 ##### 2.2.2: MacOS:
 ```bash
@@ -80,9 +80,9 @@ sudo python -m at_blackboard
 ### 5. Компонент "Интеллектуальный планировщик"
 #### 5.1: Windows:
 ```bash
-python logic/planner/ATAgentPlanner.py
+python logic/planner/generate_plan.py
 ```
 #### 5.1: MacOS:
 ```bash
-sudo python logic/planner/ATAgentPlanner.py
+sudo python logic/planner/generate_plan.py
 ```

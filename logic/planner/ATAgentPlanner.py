@@ -12,12 +12,6 @@ from dotenv import load_dotenv
 load_dotenv()
 
 
-# import sys
-# sys.path.append('../..')
-# import sys
-# sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', '..')))
-# from data import create_action_base
-
 CONFIG_YAML = os.getenv('CONFIG_YAML')
 PLANNING_BASE_PATH = os.getenv('PLANNING_BASE_PATH')
 SELECTED_RULES_FILE = os.getenv('SELECTED_RULES_FILE')
@@ -52,32 +46,6 @@ class ATAgentPlanner(ATComponent):
 
         return action_base
 
-    # def initialize_action_base_and_goals(self):
-    #     # Инициализация базы действий
-    #     self._action_base = self.create_action_base(self.planning_base)
-    #
-    #     # Создание списков начальных и целевых состояний
-    #     initial_states = [action.precond for action in self._action_base]
-    #     target_states = [action.effect for action in self._action_base]
-    #
-    #     # Распределение действий
-    #     go_Parking, go_Alternative_Parking = self._action_base[:2]
-    #     initial_state_0, target_state_0 = initial_states[0], target_states[0]
-    #     initial_state_1, target_state_1 = initial_states[1], target_states[1]
-    #
-    #     # Создание словаря целей
-    #     self._goal_state_mapping = {
-    #         'Отправить_на_парковку': {
-    #             'goal': go_Parking,
-    #             'initial_state': initial_state_0,
-    #             'target_state': target_state_0
-    #         },
-    #         'Отправить_на_альтернативную_парковку': {
-    #             'goal': go_Alternative_Parking,
-    #             'initial_state': initial_state_1,
-    #             'target_state': target_state_1
-    #         },
-    #     }
 
     def initialize_action_base_and_goals(self):
         self._action_base = self.create_action_base(self.planning_base)
@@ -116,9 +84,6 @@ class ATAgentPlanner(ATComponent):
 
         self._goal_state_mapping = goal_state_mapping
 
-        # output_file = './package/src/agents_config/goal_state_mapping.json'
-        # with open(output_file, 'w', encoding='utf-8') as f:
-        #     json.dump(self._goal_state_mapping, f, ensure_ascii=False, indent=2)
 
     @property
     def goal_state_mapping(self):
@@ -135,21 +100,6 @@ class ATAgentPlanner(ATComponent):
         else:
             raise ValueError(f'Неизвестная цель: {at_solver_goal}')
 
-    # # В процессе
-    # def map_goal_to_states(self, at_solver_goal):
-    #     """Преобразует цель в начальное и конечное состояние, не вызывая ошибку при отсутствии данных"""
-    #     goal_info = self.goal_state_mapping.get(at_solver_goal,
-    #     {
-    #         "goal": f"{at_solver_goal}",
-    #         "initial_state": ["At(stub_initial_1)"],
-    #         "target_state": ["At(stub_target_1) & ~At(stub_initial_1)"]
-    #     })
-    #
-    #     return (
-    #         goal_info.get("goal", ""),
-    #         goal_info.get("initial_state", []),
-    #         goal_info.get("target_state", [])
-    #     )
 
     def format_decomposed_goal(self, decomposed_goal_list):
         # Проверяем, что входные данные — это список
@@ -175,21 +125,13 @@ class ATAgentPlanner(ATComponent):
                   f"будет выглядеть следующим образом:\n" + "\n".join(formatted_steps))
         return result
 
+
     @component_method
     def process_agent_goal(self, at_solver_goal):
         print(f'Цель: {at_solver_goal}')
-        # print('Возможные варианты достижения цели:')
-        # for sequence in RealWorldPlanningProblem.refinements(goal, self.planning_base):
-        #     print(sequence)
-        #     print([x.__dict__ for x in sequence], '\n')
 
         # Определение цели, начального и целевого состояния на основе входной цели
         goal, initial_state, target_state = self.map_goal_to_states(at_solver_goal)
-
-        # # Проверяем, что данные корректны
-        # if not goal or not isinstance(initial_state, list) or not isinstance(target_state, list):
-        #     print(f"Ошибка данных: goal={goal}, initial_state={initial_state}, target_state={target_state}")
-        #     return None  # Или другое поведение, если пропускать нельзя
 
         # Инициализация проблемы
         problem = RealWorldPlanningProblem(initial_state, target_state, [goal])

@@ -67,13 +67,29 @@
         button.expand svg {
             transform: rotate(90deg);
         }
+        .content h3 {
+             text-align: center;
+            background-color: #007BFF;
+            color: white;
+            padding: 5px;
+            border-radius: 4px;
+        }
+        .content h4 {
+            margin: 10px 0 5px;
+        }
         .container {
-            max-width: 800px;
+            width: 100%; /* Используем всю доступную ширину */
             margin: 0 auto;
             background: white;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             padding: 20px;
+        }
+        .grid-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 15px; /* Немного уменьшил промежутки между колонками */
+            padding: 10px 0;
         }
         .section {
             margin-bottom: 20px;
@@ -135,15 +151,40 @@
             background-color: #007BFF;
             transition: width 0.3s ease;
         }
+        .wrapper {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+        header {
+            background-color: #f8f9fa !important;
+            color: #343a40 !important;
+        }
+        header a {
+            color: #343a40 !important;
+        }
     </style>
 </head>
 <body>
+    <div class="wrapper">
+        <!-- Верхняя часть (Header) -->
+        <header class="py-3">
+            <div class="container d-flex justify-content-between align-items-center">
+                <h1 class="h4 mb-0">AT-AGENTS</h1>
+                <nav>
+                    <a href="/" class="me-3">Главная</a>
+                    <a href="/about" class="me-3">О нас</a>
+                    <a href="/contact">Контакты</a>
+                </nav>
+            </div>
+        </header>
+
     <h1>Совместное функционирование</h1>
     <button id="fetchResults">Запустить совместное функционирование</button>
 
     <!-- Прогресс-бар -->
-    <div id="progressBarContainer"> <!-- Добавлено -->
-        <div id="progressBar"></div> <!-- Добавлено -->
+    <div id="progressBarContainer">
+        <div id="progressBar"></div>
     </div>
 
     <div class="container">
@@ -179,62 +220,343 @@
                     resultsContainer.innerHTML = ""; // Очистить перед обновлением
 
                     if (Array.isArray(results)) {
+                        const total = results.length;
+                        let current = 0;
+
                         results.forEach((result, index) => {
-                            const section = document.createElement('div');
-                            section.className = 'section';
+                        const section = document.createElement('div');
+                        console.log("solver_result:", result.solver_result);
 
-                            const header = document.createElement('h2');
-                            header.innerHTML = `Такт ${index + 1} <button><span>Развернуть</span><svg width="10" height="10" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="white"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6z"/></svg></button>`;
-                            section.appendChild(header);
+                        section.className = 'section';
 
-                            const content = document.createElement('div');
-                            content.className = 'content';
+                        const header = document.createElement('h2');
+                        header.innerHTML = `Такт ${index + 1} <button><span>Развернуть</span><svg width="10" height="10" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="white"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6z"/></svg></button>`;
+                        section.appendChild(header);
 
-                            // Добавляем каждую цель с соответствующим планом
-                            if (Array.isArray(result.goal)) {
-                                result.goal.forEach((goal, goalIndex) => {
-                                    const goalSection = document.createElement('div');
-                                    goalSection.className = 'goal-section';
+                        const content = document.createElement('div');
+                        content.className = 'content';
 
-                                    const goalHeader = document.createElement('h3');
-                                    goalHeader.textContent = `Полученная цель ${goalIndex + 1}`;
-                                    goalSection.appendChild(goalHeader);
+                        // Создаем сетку из трёх колонок
+                        const gridContainer = document.createElement('div');
+                        gridContainer.style.display = 'grid';
+                        gridContainer.style.gridTemplateColumns = '1fr 1fr 1fr';
+                        gridContainer.style.gap = '20px';
 
-                                    const goalContent = document.createElement('pre');
-                                    goalContent.textContent = JSON.stringify(goal, null, 2);
-                                    goalSection.appendChild(goalContent);
+                        // Колонка 1: solver_result
+                        const solverCol = document.createElement('div');
+                        const solverTitle = document.createElement('h3');
+                        solverTitle.textContent = 'АТ-РЕШАТЕЛЬ';
+                        solverCol.appendChild(solverTitle);
 
-                                    const planHeader = document.createElement('h3');
-                                    planHeader.textContent = 'Результат иерархического планирования';
-                                    goalSection.appendChild(planHeader);
+                        const steps = result.solver_result?.trace?.steps || [];
 
-                                    const planContent = document.createElement('div');
-                                    planContent.className = 'plan-content';
-                                    // Если результат является строкой или массивом строк, заменяем символы новой строки на <br>
-                                    if (Array.isArray(result.serialized_plan[goalIndex])) {
-                                        planContent.innerHTML = result.serialized_plan[goalIndex].join('<br>');
-                                    } else {
-                                        planContent.innerHTML = result.serialized_plan[goalIndex].replace(/\n/g, '<br>');
-                                    }
-                                    goalSection.appendChild(planContent);
+                        steps.forEach((step, stepIndex) => {
+                            const stepBlock = document.createElement('div');
+                            stepBlock.style.marginBottom = '20px';
 
-                                    content.appendChild(goalSection);
+                            const stepHeader = document.createElement('h4');
+                            stepHeader.textContent = `Шаг ${stepIndex + 1}`;
+                            stepBlock.appendChild(stepHeader);
+
+                            // Конфликтные правила
+                            if (step.conflict_rules && Array.isArray(step.conflict_rules) && step.conflict_rules.length > 0) {
+                                const conflictBox = document.createElement('div');
+                                conflictBox.style.border = '1px solid #b3e6b3';
+                                conflictBox.style.padding = '10px';
+                                conflictBox.style.marginBottom = '10px';
+                                conflictBox.style.borderRadius = '5px';
+                                conflictBox.style.backgroundColor = '#e6ffe6';
+
+                                const conflictTitle = document.createElement('h4');
+                                conflictTitle.textContent = 'Выбранные правила';
+                                conflictBox.appendChild(conflictTitle);
+
+                                const conflictList = document.createElement('ul');
+                                step.conflict_rules.forEach(rule => {
+                                    const li = document.createElement('li');
+                                    li.textContent = rule;
+                                    conflictList.appendChild(li);
                                 });
-                            } else {
-                                content.innerHTML = `<h3>Цели отсутствуют</h3>`;
+                                conflictBox.appendChild(conflictList);
+                                stepBlock.appendChild(conflictBox);
                             }
 
-                            // Добавляем остальные переменные
-                            content.innerHTML += `
-                                <h3>Трасса вывода</h3>
-                                <pre>${JSON.stringify(result.solver_result, null, 2)}</pre>
-                            `;
+                            // Таблицы ресурсов из final_wm_state
+                            if (step.final_wm_state && typeof step.final_wm_state === 'object') {
+                                const resourceMap = {};
 
-                            section.appendChild(content);
+                                // Группировка по ресурсу
+                                Object.entries(step.final_wm_state).forEach(([key, value]) => {
+                                    const [resource, attribute] = key.split('.');
+                                    if (!resourceMap[resource]) {
+                                        resourceMap[resource] = [];
+                                    }
+                                    resourceMap[resource].push({ attribute, value });
+                                });
 
-                            header.addEventListener('click', () => toggleContent(content, header));
+                                // Отображение таблиц
+                                Object.entries(resourceMap).forEach(([resource, attrs]) => {
+                                    const tableTitle = document.createElement('h4');
+                                    tableTitle.textContent = resource;
+                                    stepBlock.appendChild(tableTitle);
 
-                            resultsContainer.appendChild(section);
+                                    const table = document.createElement('table');
+                                    table.style.width = '100%';
+                                    table.style.borderCollapse = 'collapse';
+                                    table.style.marginBottom = '15px';
+
+                                    const thead = document.createElement('thead');
+                                    const headRow = document.createElement('tr');
+
+                                    ['Атрибут', 'Значение'].forEach(text => {
+                                        const th = document.createElement('th');
+                                        th.textContent = text;
+                                        th.style.border = '1px solid #ccc';
+                                        th.style.padding = '5px';
+                                        th.style.backgroundColor = '#f0f0f0';
+                                        headRow.appendChild(th);
+                                    });
+
+                                    thead.appendChild(headRow);
+                                    table.appendChild(thead);
+
+                                    const tbody = document.createElement('tbody');
+
+                                    attrs.forEach(({ attribute, value }) => {
+                                        const row = document.createElement('tr');
+
+                                        const attrCell = document.createElement('td');
+                                        attrCell.textContent = attribute;
+                                        attrCell.style.border = '1px solid #ccc';
+                                        attrCell.style.padding = '5px';
+
+                                        const valCell = document.createElement('td');
+                                        valCell.style.border = '1px solid #ccc';
+                                        valCell.style.padding = '5px';
+                                        valCell.style.textAlign = 'center'; // Центрирование по горизонтали
+
+                                        const button = document.createElement('button');
+
+                                        button.addEventListener('click', () => {
+                                            if (value.non_factor) {
+                                                alert(
+                                                    `Атрибут: ${attribute}\n` +
+                                                    `Accuracy: ${value.non_factor.accuracy}\n` +
+                                                    `Belief: ${value.non_factor.belief}\n` +
+                                                    `Probability: ${value.non_factor.probability}`
+                                                );
+                                            } else {
+                                                alert(`Атрибут: ${attribute}\nНет информации о non_factor`);
+                                            }
+                                        });
+
+                                        button.textContent = value?.content ?? '—';
+                                        valCell.appendChild(button);
+
+                                        row.appendChild(attrCell);
+                                        row.appendChild(valCell);
+                                        tbody.appendChild(row);
+                                    });
+
+                                    table.appendChild(tbody);
+                                    stepBlock.appendChild(table);
+                                });
+                            }
+
+                            solverCol.appendChild(stepBlock);
+                        });
+
+                        // Колонка 2: Темпоральный решатель
+                        const attCol = document.createElement('div');
+                        const attTitle = document.createElement('h3');
+                        attTitle.textContent = 'Темпоральный решатель';
+                        attCol.appendChild(attTitle);
+
+                        // Блок для отображения temporal_result
+                        const temporalContent = document.createElement('div');
+                        temporalContent.style.display = 'block';
+                        temporalContent.style.border = '1px solid #ccc';
+                        temporalContent.style.padding = '10px';
+                        temporalContent.style.borderRadius = '5px';
+                        temporalContent.style.backgroundColor = '#f9f9f9';
+                        temporalContent.style.maxHeight = '400px';
+                        temporalContent.style.overflowY = 'auto';
+
+                        if (temporalContent.childElementCount === 0) {
+                            const signified = result.temporal_result?.signified || {};
+                            const signifiedMeta = result.temporal_result?.signified_meta || {};
+                            const wm = result.temporal_result?.wm || {};
+
+                            // Вывод signified
+                            const signifiedTitle = document.createElement('h4');
+                            signifiedTitle.textContent = 'Signified';
+                            temporalContent.appendChild(signifiedTitle);
+
+                            const signifiedList = document.createElement('ul');
+                            Object.entries(signified).forEach(([key, value]) => {
+                                const li = document.createElement('li');
+                                li.textContent = `${key}: ${value}`;
+                                signifiedList.appendChild(li);
+                            });
+                            temporalContent.appendChild(signifiedList);
+
+                            // Вывод signified_meta
+                            const metaTitle = document.createElement('h4');
+                            metaTitle.textContent = 'Signified Meta';
+                            temporalContent.appendChild(metaTitle);
+
+                            const metaList = document.createElement('ul');
+                            Object.entries(signifiedMeta).forEach(([key, meta]) => {
+                                const li = document.createElement('li');
+                                li.innerHTML = `<strong>${key}</strong>: правило: ${meta.rule}, операция: ${meta.allen_operation}, значение: ${meta.value}`;
+                                metaList.appendChild(li);
+                            });
+                            temporalContent.appendChild(metaList);
+
+                            // Таймлайн
+                            const timeline = result.temporal_result?.timeline?.tacts || [];
+
+                            if (Object.keys(timeline).length > 0) {
+                                const timelineTitle = document.createElement('h4');
+                                timelineTitle.textContent = 'Таймлайн';
+                                temporalContent.appendChild(timelineTitle);
+
+                                timeline.forEach((tick, index) => {
+                                    const tickBlock = document.createElement('div');
+                                    tickBlock.style.border = '1px solid #ddd';
+                                    tickBlock.style.borderRadius = '4px';
+                                    tickBlock.style.padding = '10px';
+                                    tickBlock.style.marginBottom = '10px';
+                                    tickBlock.style.backgroundColor = '#fff';
+
+                                    const tickTitle = document.createElement('h5');
+                                    tickTitle.textContent = `Тактовый шаг ${tick.tact}`;
+                                    tickBlock.appendChild(tickTitle);
+
+                                    if (tick.events?.length > 0) {
+                                        const eventsTitle = document.createElement('p');
+                                        eventsTitle.textContent = 'События:';
+                                        eventsTitle.style.fontWeight = 'bold';
+                                        tickBlock.appendChild(eventsTitle);
+
+                                        tick.events.forEach(eventObj => {
+                                            const ev = document.createElement('div');
+                                            ev.textContent = `→ ${eventObj.event} (tact: ${eventObj.occurance_tact})`;
+                                            tickBlock.appendChild(ev);
+                                        });
+                                    }
+
+                                    if (tick.opened_intervals?.length > 0) {
+                                        const intervalsTitle = document.createElement('p');
+                                        intervalsTitle.textContent = 'Открытые интервалы:';
+                                        intervalsTitle.style.fontWeight = 'bold';
+                                        intervalsTitle.style.marginTop = '8px';
+                                        tickBlock.appendChild(intervalsTitle);
+
+                                        tick.opened_intervals.forEach(interval => {
+                                            const intervalDiv = document.createElement('div');
+                                            intervalDiv.textContent = `${interval.name} [${interval.begin}, ${interval.end}]`;
+                                            tickBlock.appendChild(intervalDiv);
+                                        });
+                                    }
+
+                                    temporalContent.appendChild(tickBlock);
+                                });
+                            }
+                        }
+                        attCol.appendChild(temporalContent);
+
+                        // Колонка 3: Планировщик (goal + global_generated_plan + serialized_plan)
+                        const plannerCol = document.createElement('div');
+                        const plannerTitle = document.createElement('h3');
+                        plannerTitle.textContent = 'Планировщик';
+                        plannerCol.appendChild(plannerTitle);
+
+                        if (result.global_generated_plan) {
+                            const fullPlanDiv = document.createElement('div');
+                            fullPlanDiv.className = 'goal-section';
+
+                            const fullPlanHeader = document.createElement('h4');
+                            fullPlanHeader.textContent = 'Итоговый сгенерированный план:';
+                            fullPlanDiv.appendChild(fullPlanHeader);
+
+                            // Парсим строку
+                            const rawPlan = result.global_generated_plan;
+                            const trimmed = rawPlan.trim().slice(1, -1); // убираем [ и ]
+
+                            const steps = [];
+                            let current = '';
+                            let level = 0;
+
+                            for (let char of trimmed) {
+                                if (char === '(') level++;
+                                if (char === ')') level--;
+                                
+                                if (char === ',' && level === 0) {
+                                    steps.push(current.trim());
+                                    current = '';
+                                } else {
+                                    current += char;
+                                }
+                            }
+                            if (current) steps.push(current.trim());
+
+                            // Для каждого шага создаём отдельный <pre>
+                            steps.forEach((step, idx) => {
+                                const stepPre = document.createElement('pre');
+                                stepPre.textContent = `${idx + 1}. ${step}`;
+                                stepPre.style.fontSize = '14px'; // увеличенный шрифт
+                                stepPre.style.backgroundColor = '#f0f0f0';
+                                stepPre.style.padding = '10px';
+                                stepPre.style.borderRadius = '5px';
+                                stepPre.style.marginBottom = '10px';
+                                stepPre.style.whiteSpace = 'pre-wrap';
+                                fullPlanDiv.appendChild(stepPre);
+                            });
+
+                            plannerCol.appendChild(fullPlanDiv);
+                        }
+
+                        if (Array.isArray(result.goal)) {
+                            result.goal.forEach((goal, goalIndex) => {
+                                const goalDiv = document.createElement('div');
+                                goalDiv.className = 'goal-section';
+
+                                const goalHeader = document.createElement('h4');
+                                goalHeader.textContent = `Цель ${goalIndex + 1}`;
+                                goalDiv.appendChild(goalHeader);
+
+                                const goalPre = document.createElement('pre');
+                                goalPre.textContent = JSON.stringify(goal, null, 2);
+                                goalDiv.appendChild(goalPre);
+
+                                const planHeader = document.createElement('h4');
+                                planHeader.textContent = 'Конкретизация цели:';
+                                goalDiv.appendChild(planHeader);
+
+                                const planContent = document.createElement('pre');
+                                if (Array.isArray(result.serialized_plan[goalIndex])) {
+                                    planContent.innerHTML = result.serialized_plan[goalIndex].join('<br>');
+                                } else {
+                                    planContent.innerHTML = result.serialized_plan[goalIndex]?.replace(/\n/g, '<br>') ?? '';
+                                }
+                                goalDiv.appendChild(planContent);
+
+                                plannerCol.appendChild(goalDiv);
+                            });
+                        }
+
+                        // Добавляем колонки в сетку
+                        gridContainer.appendChild(attCol);
+                        gridContainer.appendChild(solverCol);
+                        gridContainer.appendChild(plannerCol);
+
+                        // Добавляем сетку в content
+                        content.appendChild(gridContainer);
+
+                        section.appendChild(content);
+                        header.addEventListener('click', () => toggleContent(content, header));
+                        resultsContainer.appendChild(section);
                         });
                     } else {
                         resultsContainer.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>Ожидался массив тактов, но получено: ${JSON.stringify(results)}</pre></div>`;
@@ -262,201 +584,12 @@
             resultsContainer.innerHTML = `<div class="section"><h2>Ошибка</h2><pre>${message}</pre></div>`;
         }
     </script>
+    <!-- Подвал (Footer) -->
+    <footer class="bg-light py-3 mt-5">
+        <div class="container_1 text-center">
+            <p class="mb-0">&copy; 2025 AT-AGENTS. Все права защищены.</p>
+        </div>
+    </footer>
+    </div>
 </body>
 </html>
-
-
-
-
-
-
-
-
-<!--<!DOCTYPE html>-->
-<!--<html lang="en">-->
-<!--<head>-->
-<!--    <meta charset="UTF-8">-->
-<!--    <meta name="viewport" content="width=device-width, initial-scale=1.0">-->
-<!--    <title>AT Solver Results</title>-->
-<!--    <style>-->
-<!--        /* Стили остались без изменений */-->
-<!--        body {-->
-<!--            font-family: Arial, sans-serif;-->
-<!--            margin: 20px;-->
-<!--            background-color: #f5f5f5;-->
-<!--        }-->
-<!--        h1 {-->
-<!--            text-align: center;-->
-<!--            color: #333;-->
-<!--        }-->
-<!--        #fetchResults {-->
-<!--            display: block;-->
-<!--            margin: 20px auto;-->
-<!--            padding: 10px 20px;-->
-<!--            font-size: 16px;-->
-<!--            color: white;-->
-<!--            background-color: #007BFF;-->
-<!--            border: none;-->
-<!--            border-radius: 4px;-->
-<!--            cursor: pointer;-->
-<!--            transition: background-color 0.3s;-->
-<!--        }-->
-<!--        #fetchResults:hover {-->
-<!--            background-color: #0056b3;-->
-<!--        }-->
-<!--        .btn {-->
-<!--            display: inline-block;-->
-<!--            margin-bottom: 20px;-->
-<!--            padding: 10px 20px;-->
-<!--            font-size: 16px;-->
-<!--            color: white;-->
-<!--            background-color: #007BFF;-->
-<!--            text-decoration: none;-->
-<!--            border-radius: 4px;-->
-<!--            transition: background-color 0.3s;-->
-<!--        }-->
-<!--        .btn:hover {-->
-<!--            background-color: #0056b3;-->
-<!--        }-->
-<!--        .container {-->
-<!--            max-width: 800px;-->
-<!--            margin: 0 auto;-->
-<!--            background: white;-->
-<!--            border-radius: 8px;-->
-<!--            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);-->
-<!--            padding: 20px;-->
-<!--        }-->
-<!--        .section {-->
-<!--            margin-bottom: 20px;-->
-<!--            border: 1px solid #ddd;-->
-<!--            border-radius: 5px;-->
-<!--            overflow: hidden;-->
-<!--            background: #FFFFFF;-->
-<!--        }-->
-<!--        .section h2 {-->
-<!--            font-size: 18px;-->
-<!--            margin: 0;-->
-<!--            padding: 10px 15px;-->
-<!--            background-color: #e6e6e6;-->
-<!--            color: black;-->
-<!--            cursor: pointer;-->
-<!--        }-->
-<!--        .goal-section {-->
-<!--            margin: 10px 0;-->
-<!--            border: 1px solid #ccc;-->
-<!--            border-radius: 5px;-->
-<!--            padding: 10px;-->
-<!--            background: #f9f9f9;-->
-<!--        }-->
-<!--        .goal-section h3 {-->
-<!--            font-size: 16px;-->
-<!--            margin: 0 0 10px;-->
-<!--        }-->
-<!--        .goal-section pre {-->
-<!--            background: #f0f0f0;-->
-<!--            padding: 10px;-->
-<!--            border-radius: 5px;-->
-<!--            overflow-x: auto;-->
-<!--        }-->
-<!--        #progressBarContainer {-->
-<!--            display: none;-->
-<!--            width: 30%;-->
-<!--            background-color: #e0e0e0;-->
-<!--            border-radius: 8px;-->
-<!--            overflow: hidden;-->
-<!--            margin: 20px auto;-->
-<!--        }-->
-<!--        #progressBar {-->
-<!--            width: 0%;-->
-<!--            height: 20px;-->
-<!--            background-color: #007BFF;-->
-<!--            transition: width 0.3s ease;-->
-<!--        }-->
-<!--    </style>-->
-<!--</head>-->
-<!--<body>-->
-<!--    <h1>Совместное функционирование</h1>-->
-<!--    <button id="fetchResults">Запустить совместное функционирование</button>-->
-
-<!--    <div id="progressBarContainer">-->
-<!--        <div id="progressBar"></div>-->
-<!--    </div>-->
-
-<!--    <div class="container">-->
-<!--        <a href="/todoOutput" class="btn">Назад</a>-->
-<!--        <div id="resultsContainer">-->
-<!--            &lt;!&ndash; Результаты будут добавлены сюда &ndash;&gt;-->
-<!--        </div>-->
-<!--    </div>-->
-
-<!--    <script>-->
-<!--        const fetchResultsButton = document.getElementById('fetchResults');-->
-<!--        const progressBarContainer = document.getElementById('progressBarContainer');-->
-<!--        const progressBar = document.getElementById('progressBar');-->
-<!--        const resultsContainer = document.getElementById('resultsContainer');-->
-
-<!--        fetchResultsButton.addEventListener('click', async () => {-->
-<!--            try {-->
-<!--                progressBarContainer.style.display = 'block';-->
-<!--                progressBar.style.width = '0%';-->
-
-<!--                const response = await fetch('/api/results');-->
-
-<!--                for (let i = 0; i <= 100; i += 20) {-->
-<!--                    progressBar.style.width = `${i}%`;-->
-<!--                    await new Promise(resolve => setTimeout(resolve, 200));-->
-<!--                }-->
-
-<!--                if (response.ok) {-->
-<!--                    const results = await response.json();-->
-
-<!--                    resultsContainer.innerHTML = ""; // Очищаем контейнер перед добавлением новых данных-->
-
-<!--                    if (Array.isArray(results)) {-->
-<!--                        results.forEach((result, index) => {-->
-<!--                            const section = document.createElement('div');-->
-<!--                            section.className = 'section';-->
-
-<!--                            const header = document.createElement('h2');-->
-<!--&lt;!&ndash;                            header.textContent = `Такт ${index + 1}`;&ndash;&gt;-->
-<!--                            header.innerHTML = `Такт ${index + 1} <button><span>Развернуть</span><svg width="10" height="10" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" fill="white"><path d="M8.59 16.59L13.17 12L8.59 7.41L10 6l6 6l-6 6z"/></svg></button>`;-->
-<!--                            section.appendChild(header);-->
-
-<!--                            const content = document.createElement('div');-->
-<!--                            content.className = 'content';-->
-
-<!--                            result.goal.forEach((goal, goalIndex) => {-->
-<!--                                const goalSection = document.createElement('div');-->
-<!--                                goalSection.className = 'goal-section';-->
-
-<!--                                const goalHeader = document.createElement('h3');-->
-<!--                                goalHeader.textContent = `Цель ${goalIndex + 1}`;-->
-<!--                                goalSection.appendChild(goalHeader);-->
-
-<!--                                const goalContent = document.createElement('pre');-->
-<!--                                goalContent.textContent = JSON.stringify(goal, null, 2);-->
-<!--                                goalSection.appendChild(goalContent);-->
-
-<!--                                const planHeader = document.createElement('h3');-->
-<!--                                planHeader.textContent = 'План:';-->
-<!--                                goalSection.appendChild(planHeader);-->
-
-<!--                                const planContent = document.createElement('pre');-->
-<!--                                planContent.textContent = JSON.stringify(result.serialized_plan[goalIndex], null, 2);-->
-<!--                                goalSection.appendChild(planContent);-->
-
-<!--                                content.appendChild(goalSection);-->
-<!--                            });-->
-
-<!--                            section.appendChild(content);-->
-<!--                            resultsContainer.appendChild(section);-->
-<!--                        });-->
-<!--                    }-->
-<!--                }-->
-<!--            } catch (error) {-->
-<!--                console.error("Ошибка загрузки данных:", error);-->
-<!--            }-->
-<!--        });-->
-<!--    </script>-->
-<!--</body>-->
-<!--</html>-->
