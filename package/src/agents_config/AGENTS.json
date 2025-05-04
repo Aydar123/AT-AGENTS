@@ -11,31 +11,5 @@
             }
         },
         "ATSimulationSubsystem": {}
-    },
-    "agent2": {
-        "ATSolver": {
-            "kb": {
-                "path": "./package/src/kb/Kutdusov_parking_kb_v3_5.kbs"
-            }
-        },
-        "ATTemporalSolver": {
-            "kb": {
-                "path": "./package/src/kb/Kutdusov_parking_kb_v3_5.kbs"
-            }
-        },
-        "ATSimulationSubsystem": {}
-    },
-    "agent3": {
-        "ATSolver": {
-            "kb": {
-                "path": "./package/src/kb/Kutdusov_parking_kb_v3_5.kbs"
-            }
-        },
-        "ATTemporalSolver": {
-            "kb": {
-                "path": "./package/src/kb/Kutdusov_parking_kb_v3_5.kbs"
-            }
-        },
-        "ATSimulationSubsystem": {}
     }
 }

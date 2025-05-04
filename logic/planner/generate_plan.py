@@ -73,45 +73,18 @@ class StateSpacePlanning(ATComponent):
 
 
     @component_method
-    def process_agent_goal(self, at_solver_goal):
+    def mapping_at_goal_and_action(self, at_solver_goal):
         if at_solver_goal not in goal_mapping_dict:
             raise ValueError(f"Неизвестная цель: {at_solver_goal}")
 
         current_goal = goal_mapping_dict[at_solver_goal]
         print(f'goal_str: {current_goal}')
 
-        with open(STATE_SPACE_JSON, "r", encoding="utf-8") as f:
-            state_space_data = json.load(f)
-
-        action_templates_raw = state_space_data[0]["action_templates"]
-
-        action_templates = []
-        for action in action_templates_raw:
-            cleaned_action = {
-                'name': action['name'],
-                'params': [param.strip("'") for param in action['parameters']],
-                'precond': action['preconditions'],
-                'effect': action['effects'],
-                'domain': action['domain']
-            }
-            action_templates.append(cleaned_action)
-
-        print(f"Цель: {at_solver_goal} => {current_goal}")
-
-        final_plan = self.generate_plan(
-            initial,
-            current_goal,
-            action_templates,
-            domain
-        )
-
-        print(f"Generated Plan: {final_plan}")
-
-        return final_plan
+        return current_goal
 
 
     @component_method
-    def simple_process_agent_goal(self):
+    def general_generated_plan(self):
         # 1. Загружаем action_templates из файла state_spaces.json
         with open(STATE_SPACE_JSON, "r", encoding="utf-8") as f:
             state_space_data = json.load(f)

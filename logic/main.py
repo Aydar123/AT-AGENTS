@@ -127,7 +127,7 @@ class InteractionComponent(ATComponent):
 
         global_generated_plan = await self.exec_external_method(
             'StateSpacePlanning',
-            'simple_process_agent_goal',
+            'general_generated_plan',
             {'agent': agent}
         )
 
@@ -213,8 +213,7 @@ class InteractionComponent(ATComponent):
                 # Отправляем цель в планировщик
                 serialized_plan = await self.exec_external_method(
                     'StateSpacePlanning',
-                    # 'ATAgentPlanner',
-                    'process_agent_goal',
+                    'mapping_at_goal_and_action',
                     {'at_solver_goal': goal, 'agent': agent}
                 )
                 decomposed_plan_array.append(serialized_plan)
