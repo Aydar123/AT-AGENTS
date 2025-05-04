@@ -122,10 +122,6 @@ class ATAgentPlanner(ATComponent):
     @component_method
     def process_agent_goal(self, at_solver_goal):
         print(f'Цель: {at_solver_goal}')
-        # print('Возможные варианты достижения цели:')
-        # for sequence in RealWorldPlanningProblem.refinements(goal, self.planning_base):
-        #     print(sequence)
-        #     print([x.__dict__ for x in sequence], '\n')
 
         # Определение цели, начального и целевого состояния на основе входной цели
         goal, initial_state, target_state = self.map_goal_to_states(at_solver_goal)

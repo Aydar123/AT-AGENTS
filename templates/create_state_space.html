@@ -1,0 +1,409 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>State Space Planner</title>
+    <link href="/static/bootstrap.min.css" rel="stylesheet"/>
+    <script src="/static/bootstrap.min.js"></script>
+    <style>
+        .info-box {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            /* width: 600px;
+            height: 300px; */
+        }
+    </style>
+    <script>
+        let stateSpaces = [];
+        let currentStateSpaceIndex = null;
+
+        function fetchStateSpaces() {
+            fetch("/get_list_state_spaces")
+                .then(response => response.json())
+                .then(data => {
+                    stateSpaces = data.state_spaces || [];
+                    updateStateSpacesList();
+                })
+                .catch(error => console.error("Ошибка загрузки пространств:", error));
+        }
+
+          let currentStep = 1;
+          let selectedExperiments = [];
+          let experimentsData = {};
+
+          document.addEventListener('DOMContentLoaded', () => {
+            initModalEvents();
+            fetchExperiments();
+            document.getElementById("addActionTemplateBtn").addEventListener('click', addActionTemplate);
+          });
+
+          // Получение списка экспериментов с бэка
+          async function fetchExperiments() {
+            try {
+              const response = await fetch('/get_experiments');
+              if (!response.ok) throw new Error('Не удалось загрузить эксперименты');
+              experimentsData = await response.json();
+            } catch (error) {
+              console.error(error);
+              alert('Ошибка при загрузке экспериментов');
+            }
+          }
+
+          async function renderExperiments() {
+              // Загрузим сохранённые выбранные эксперименты
+              try {
+                const response = await fetch('/get_selected_experiments');
+                if (response.ok) {
+                  const data = await response.json();
+                  selectedExperiments = data.selected || [];
+                }
+              } catch (e) {
+                console.warn("Не удалось загрузить сохраненные эксперименты");
+              }
+
+              const experimentsList = document.getElementById('experimentsList');
+              experimentsList.innerHTML = '';
+
+              Object.keys(experimentsData).forEach((exp, index) => {
+                const checkboxId = `expCheckbox${index}`;
+                const isChecked = selectedExperiments.includes(exp);
+
+                const checkboxHTML = `
+                  <div class="form-check">
+                    <input class="form-check-input" type="checkbox" value="${exp}" id="${checkboxId}" ${isChecked ? 'checked' : ''}>
+                    <label class="form-check-label" for="${checkboxId}">
+                      ${index + 1}. ${exp}
+                      <button type="button" class="btn btn-link btn-sm" onclick="showExperimentInfo('${exp}')">Ознакомиться</button>
+                    </label>
+                  </div>
+                `;
+                experimentsList.insertAdjacentHTML('beforeend', checkboxHTML);
+              });
+          }
+
+          function showExperimentInfo(exp) {
+            const info = experimentsData[exp] || 'Описание отсутствует';
+            alert(`${exp}:\n\n${info}`);
+          }
+
+          function initModalEvents() {
+            const modalElement = document.getElementById('addStateSpaceModal');
+            const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+
+            modalElement.addEventListener('show.bs.modal', () => {
+              resetModal();
+              renderExperiments();
+            });
+
+            document.getElementById('nextBtn').addEventListener('click', () => {
+              const checkedBoxes = document.querySelectorAll('#experimentsList input[type="checkbox"]:checked');
+              selectedExperiments = Array.from(checkedBoxes).map(cb => cb.value);
+
+              fetch('/save_selected_experiments', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({ selected: selectedExperiments })
+              });
+
+              if (selectedExperiments.length === 0) {
+                alert('Пожалуйста, выберите хотя бы один эксперимент.');
+                return;
+              }
+
+              showStep(2);
+            });
+
+            document.getElementById('backBtn').addEventListener('click', () => showStep(1));
+
+            document.getElementById('cancelBtn').addEventListener('click', () => {
+              modal.hide();
+            });
+
+            document.getElementById('saveExpBtn').addEventListener('click', async () => {
+              const name = document.getElementById('stateSpaceName').value.trim();
+              if (!name) {
+                alert('Пожалуйста, введите название пространства состояний.');
+                return;
+              }
+
+              const newSpace = {
+                name,
+                experiment_type: selectedExperiments,
+                action_templates: [],
+                // goal_positions: {},
+                // initial_positions: { Drivers: {}, Parking_locations: {} }
+              };
+
+              stateSpaces.push(newSpace);
+
+              try {
+                const response = await fetch("/save_state_spaces", {
+                  method: "POST",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify(stateSpaces, null, 4)
+                });
+
+                if (!response.ok) throw new Error("Ошибка при сохранении");
+
+                const result = await response.json();
+                alert(`Пространство успешно сохранено: ${result.filename}`);
+                modal.hide();
+                updateStateSpacesList();
+              } catch (error) {
+                console.error(error);
+                alert('Ошибка при сохранении пространства');
+              }
+            });
+          }
+
+          function resetModal() {
+              currentStep = 1;
+              document.getElementById('stateSpaceName').value = '';
+              showStep(1);
+          }
+
+          function showStep(stepNumber) {
+            currentStep = stepNumber;
+
+            document.getElementById('step1').style.display = stepNumber === 1 ? 'block' : 'none';
+            document.getElementById('step2').style.display = stepNumber === 2 ? 'block' : 'none';
+
+            document.getElementById('nextBtn').style.display = stepNumber === 1 ? 'inline-block' : 'none';
+            document.getElementById('backBtn').style.display = stepNumber === 2 ? 'inline-block' : 'none';
+            document.getElementById('saveExpBtn').style.display = stepNumber === 2 ? 'inline-block' : 'none';
+          }
+
+        function updateStateSpacesList() {
+            let list = document.getElementById("stateSpacesList");
+            list.innerHTML = "";
+            stateSpaces.forEach((space, index) => {
+                let li = document.createElement("li");
+                li.className = "list-group-item d-flex justify-content-between align-items-center";
+                li.innerHTML = `${space.name} (Тип: ${space.action_templates.length})`;
+
+                let btnEdit = document.createElement("button");
+                btnEdit.className = "btn btn-primary btn-sm";
+                btnEdit.textContent = "Редактировать";
+                btnEdit.onclick = () => editStateSpace(index);
+
+                let btnView = document.createElement("button");
+                btnView.className = "btn btn-secondary btn-sm";
+                btnView.textContent = "Просмотр";
+                btnView.onclick = () => viewStateSpace(index);
+
+                let btnDelete = document.createElement("button");
+                btnDelete.className = "btn btn-danger btn-sm";
+                btnDelete.textContent = "Удалить";
+                btnDelete.onclick = () => deleteStateSpace(index);
+
+                li.appendChild(btnEdit);
+                li.appendChild(btnView);
+                li.appendChild(btnDelete);
+                list.appendChild(li);
+            });
+        }
+
+        function editStateSpace(index) {
+            let space = stateSpaces[index];
+            let editor = document.getElementById("editor");
+            currentStateSpaceIndex = index;
+            editor.value = JSON.stringify(space, null, 4);
+            editor.removeAttribute("readonly");  // Делаем поле редактируемым
+            document.getElementById("saveBtn").onclick = () => saveStateSpace(index);
+
+            const name = stateSpaces[index].name || "без имени";
+            document.getElementById("modeTitle").textContent = `Режим: редактирование для ${name}`;
+        }
+
+        function viewStateSpace(index) {
+            currentStateSpaceIndex = null
+            let space = stateSpaces[index];
+            let editor = document.getElementById("editor");
+            editor.value = JSON.stringify(space, null, 4);
+            editor.setAttribute("readonly", "true"); // Делаем поле только для чтения
+
+            const name = stateSpaces[index].name || "Без имени";
+            document.getElementById("modeTitle").textContent = `Режим: просмотр для ${name}`;
+        }
+
+        function downloadJSON() {
+            let dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(stateSpaces, null, 4));
+            let downloadAnchorNode = document.createElement('a');
+            downloadAnchorNode.setAttribute("href", dataStr);
+            downloadAnchorNode.setAttribute("download", "state_spaces.json");
+            document.body.appendChild(downloadAnchorNode);
+            downloadAnchorNode.click();
+            downloadAnchorNode.remove();
+        }
+
+        function saveStateSpace(index) {
+            try {
+                let inputData = JSON.parse(document.getElementById("editor").value);
+                stateSpaces[index] = inputData;
+
+                fetch("/save_state_spaces", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(stateSpaces, null, 4)
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Ошибка при сохранении данных");
+                    return response.json();
+                })
+                .then(data => {
+                    alert(`State space saved successfully! File: ${data.filename}`);
+                    updateStateSpacesList();
+                })
+                .catch(error => alert("Ошибка: " + error.message));
+            } catch (e) {
+                alert("Invalid JSON format.");
+            }
+        }
+
+        function deleteStateSpace(index) {
+            const name = stateSpaces[index].name;
+            if (confirm(`Вы уверены, что хотите удалить пространство "${name}"?`)) {
+                fetch("/delete_state_space", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({ index })
+                })
+                .then(response => {
+                    if (!response.ok) throw new Error("Ошибка при удалении");
+                    return response.json();
+                })
+                .then(data => {
+                    alert(data.message);
+                    fetchStateSpaces();
+                })
+                .catch(error => alert("Ошибка: " + error.message));
+            }
+        }
+
+        function addActionTemplate() {
+            if (currentStateSpaceIndex === null) {
+                alert("Сначала выберите пространство состояний и переключитесь в режим редактирования, нажав на кнопку 'Редактировать'.");
+                return;
+            }
+
+            const name = prompt("Введите имя действия (например, Drive или Park):");
+            const params = prompt("Введите параметры (через запятую):").split(",").map(param => param.trim());
+            const precond = prompt("Введите предусловия:");
+            const effect = prompt("Введите эффекты:");
+            const domain = prompt("Введите домен:");
+
+            if (!name || !params.length || !precond || !effect || !domain) {
+                alert("Пожалуйста, заполните все поля.");
+                return;
+            }
+
+            const newActionTemplate = {
+                name,
+                parameters: params,
+                preconditions: precond,
+                effects: effect,
+                domain
+            };
+
+            stateSpaces[currentStateSpaceIndex].action_templates.push(newActionTemplate);
+
+            // ⬇️ ОБНОВЛЕНИЕ EDITOR
+            const editor = document.getElementById("editor");
+            editor.value = JSON.stringify(stateSpaces[currentStateSpaceIndex], null, 4);
+
+            // Также можно сохранить изменения сразу (опционально):
+            fetch("/save_state_spaces", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify(stateSpaces, null, 4)
+            })
+            .then(response => response.json())
+            .then(data => {
+                console.log("Пространство обновлено:", data.filename);
+                updateStateSpacesList(); // Чтобы обновилось количество action_templates
+            })
+            .catch(error => console.error("Ошибка при сохранении:", error));
+        }
+
+        window.onload = fetchStateSpaces;
+    </script>
+
+
+</head>
+<body>
+    <div class="wrapper">
+        <header class="py-3 bg-light">
+            <div class="container d-flex justify-content-between align-items-center">
+                <h1 class="h4 mb-0">Интеллектуальный планировщик (метод планирования в пространстве состояний)</h1>
+                <nav>
+                    <a href="/" class="me-3">Главная</a>
+                    <a href="/about" class="me-3">О нас</a>
+                    <a href="/contact">Контакты</a>
+                </nav>
+            </div>
+        </header>
+
+        <main class="container mt-4 content">
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="info-box">
+                        <h2>Управление пространствами состояний</h2>
+                        <button class="btn btn-primary mb-2" data-bs-toggle="modal" data-bs-target="#addStateSpaceModal">Добавить пространство</button>
+                        <button class="btn btn-secondary mb-2" onclick="downloadJSON()">Скачать JSON</button>
+                        <h3 class="mt-3">Список пространств</h3>
+                        <ul id="stateSpacesList" class="list-group"></ul>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="info-box">
+                        <h2 id="modeTitle">Редактирование</h2>
+                        <textarea id="editor" class="form-control" rows="10"></textarea>
+                        <button id="saveBtn" class="btn btn-success mt-2">Сохранить</button>
+                        <button id="addActionTemplateBtn" class="btn btn-primary mt-2">Создать правила для генерации плана</button>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="bg-light py-3 mt-5 text-center">
+            <div class="container">
+                <p class="mb-0">&copy; 2025 AT-AGENTS. Все права защищены.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Модальное окно для добавления пространства -->
+    <div class="modal fade" id="addStateSpaceModal" tabindex="-1" role="dialog" aria-labelledby="addStateSpaceModalLabel" aria-hidden="true">
+      <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Добавить пространство состояний</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Закрыть"></button>
+          </div>
+          <div class="modal-body">
+            <!-- Шаг 1 -->
+            <div id="step1">
+              <p>Выберите эксперимент, для которого хотите создать пространство состояний</p>
+              <div id="experimentsList" class="form-check"></div>
+            </div>
+            <!-- Шаг 2 -->
+            <div id="step2" style="display: none;">
+              <label for="stateSpaceName" class="form-label">Введите название пространства состояний</label>
+              <input type="text" id="stateSpaceName" class="form-control" placeholder="Название пространства">
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" id="cancelBtn">Отмена</button>
+            <button type="button" class="btn btn-primary" id="saveExpBtn">Подтвердить</button>
+            <button type="button" class="btn btn-success" id="nextBtn">Далее</button>
+            <button type="button" class="btn btn-success" id="backBtn" style="display: none;">Назад</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+</body>
+</html>

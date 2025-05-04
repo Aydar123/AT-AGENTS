@@ -19,7 +19,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 AGENTS = json.load(open(os.getenv('AGENTS')))
-KB_XML_FILE_PATH = os.getenv('KB_XML_FILE_PATH')
+# KB_XML_FILE_PATH = os.getenv('KB_XML_FILE_PATH')
 RAO_XML_FILE_PATH = os.getenv('RAO_XML_FILE_PATH')
 RAO_PROGON_XML_FILE_PATH = os.getenv('RESOURCE_PARAMETERS_PATH')
 SELECTED_RULES_FILE = os.getenv('SELECTED_RULES_FILE')
@@ -28,6 +28,8 @@ PLANNING_BASE_PATH = os.getenv('PLANNING_BASE_PATH')
 UPLOAD_FOLDER_KB = os.getenv('UPLOAD_FOLDER_KB')
 UPLOAD_FOLDER_AT_SIM_SUB = os.getenv('UPLOAD_FOLDER_AT_SIM_SUB')
 UPLOAD_FOLDER_PB = os.getenv('UPLOAD_FOLDER_PB')
+EXP_FOLDER_PATH = os.getenv('EXP_FOLDER_PATH')
+EXP_SELECTED_FILE_PATH = os.getenv('EXP_SELECTED_FILE_PATH')
 
 tasks = {
     "create_knowledge_base": {"checked": False},
@@ -43,7 +45,8 @@ with open(CONFIG_YAML, "r") as config_file:
 connection_url = config["connection"]["url"]
 
 app = Flask(__name__)
-app.secret_key = "SECRET_KEY"
+# Знаю, что лучше такой "секрет" хранить в .env, но в рамках прототипа и установки для "коллег" оставлю так...
+app.secret_key = "NO_SECRET_KEY"
 app.config['UPLOAD_FOLDER_KB'] = UPLOAD_FOLDER_KB
 app.config['UPLOAD_FOLDER_AT_SIM_SUB'] = UPLOAD_FOLDER_AT_SIM_SUB
 app.config['UPLOAD_FOLDER_PB'] = UPLOAD_FOLDER_PB
@@ -236,58 +239,58 @@ def add_hla():
         return jsonify({'error': f'Ошибка при обработке запроса: {str(e)}'}), 500
 
 
-@app.route("/get/rules", methods=["GET"])
-def get_rules():
-    # Загружаем XML-файл
-    tree = ET.parse(KB_XML_FILE_PATH)
-    root = tree.getroot()
+# @app.route("/get/rules", methods=["GET"])
+# def get_rules():
+#     # Загружаем XML-файл
+#     tree = ET.parse(KB_XML_FILE_PATH)
+#     root = tree.getroot()
+#
+#     # Извлекаем правила из тега <rules>
+#     rules = []
+#     for rule in root.findall(".//rules/rule"):
+#         rule_id = rule.get("id")
+#         if rule_id:
+#             rules.append(rule_id)
+#
+#     # Возвращаем JSON с правилами
+#     return jsonify(rules)
 
-    # Извлекаем правила из тега <rules>
-    rules = []
-    for rule in root.findall(".//rules/rule"):
-        rule_id = rule.get("id")
-        if rule_id:
-            rules.append(rule_id)
 
-    # Возвращаем JSON с правилами
-    return jsonify(rules)
-
-
-@app.route("/save/selected_rules", methods=["POST"])
-def save_selected_rules():
-    # Проверяем, что запрос содержит данные
-    if not request.json or 'selected_rules' not in request.json:
-        return jsonify({"error": "Данные отсутствуют или некорректны"}), 400
-
-    selected_rules_ids = request.json['selected_rules']  # Получаем список выбранных правил (id)
-
-    # Загружаем XML-файл
-    if not os.path.exists(KB_XML_FILE_PATH):
-        return jsonify({"error": f"Файл {KB_XML_FILE_PATH} не найден"}), 500
-
-    tree = ET.parse(KB_XML_FILE_PATH)
-    root = tree.getroot()
-
-    # Создаём структуру для выбранных правил
-    selected_rules_data = {}
-
-    for rule_id in selected_rules_ids:
-        rule = root.find(f".//rules/rule[@id='{rule_id}']")
-        if rule is not None:
-            # Конвертируем XML в словарь
-            rule_dict = xmltodict.parse(ET.tostring(rule, encoding="unicode"))
-            rule_dict = rule_dict.get("rule", {})  # Извлекаем содержимое тега <rule>
-
-            # Добавляем id как ключ
-            selected_rules_data[rule_id] = rule_dict
-
-    try:
-        with open(SELECTED_RULES_FILE, "w", encoding="utf-8") as json_file:
-            json.dump(selected_rules_data, json_file, ensure_ascii=False, indent=2)
-    except Exception as e:
-        return jsonify({"error": f"Не удалось сохранить файл: {str(e)}"}), 500
-
-    return jsonify({"message": "Выбранные правила успешно сохранены", "data": selected_rules_data}), 200
+# @app.route("/save/selected_rules", methods=["POST"])
+# def save_selected_rules():
+#     # Проверяем, что запрос содержит данные
+#     if not request.json or 'selected_rules' not in request.json:
+#         return jsonify({"error": "Данные отсутствуют или некорректны"}), 400
+#
+#     selected_rules_ids = request.json['selected_rules']  # Получаем список выбранных правил (id)
+#
+#     # Загружаем XML-файл
+#     if not os.path.exists(KB_XML_FILE_PATH):
+#         return jsonify({"error": f"Файл {KB_XML_FILE_PATH} не найден"}), 500
+#
+#     tree = ET.parse(KB_XML_FILE_PATH)
+#     root = tree.getroot()
+#
+#     # Создаём структуру для выбранных правил
+#     selected_rules_data = {}
+#
+#     for rule_id in selected_rules_ids:
+#         rule = root.find(f".//rules/rule[@id='{rule_id}']")
+#         if rule is not None:
+#             # Конвертируем XML в словарь
+#             rule_dict = xmltodict.parse(ET.tostring(rule, encoding="unicode"))
+#             rule_dict = rule_dict.get("rule", {})  # Извлекаем содержимое тега <rule>
+#
+#             # Добавляем id как ключ
+#             selected_rules_data[rule_id] = rule_dict
+#
+#     try:
+#         with open(SELECTED_RULES_FILE, "w", encoding="utf-8") as json_file:
+#             json.dump(selected_rules_data, json_file, ensure_ascii=False, indent=2)
+#     except Exception as e:
+#         return jsonify({"error": f"Не удалось сохранить файл: {str(e)}"}), 500
+#
+#     return jsonify({"message": "Выбранные правила успешно сохранены", "data": selected_rules_data}), 200
 
 
 @app.route('/upload/kb', methods=['POST'])
@@ -360,6 +363,140 @@ def display_resources():
 def resources_view():
     resources = rao_progon_xml_parse(RAO_PROGON_XML_FILE_PATH)
     return render_template('rao_view_progon.html', resources=resources)
+
+
+@app.route('/state/space', methods=['GET'])
+def get_state_spaces():
+    return render_template('create_state_space.html')
+
+
+STATE_SPACES_FILE = os.path.join(UPLOAD_FOLDER_PB, "state_spaces.json")
+def load_state_spaces():
+    """Загружает сохраненные пространства состояний из файла, если он существует."""
+    if os.path.exists(STATE_SPACES_FILE):
+        with open(STATE_SPACES_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+
+EXP_FILE = os.path.join(EXP_FOLDER_PATH, "exp.json")
+def load_experiments():
+    """Загружает заданные эксперименты из файла, если он существует."""
+    if os.path.exists(EXP_FILE):
+        with open(EXP_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return []
+
+
+@app.route('/save_state_spaces', methods=['POST'])
+def save_state_spaces():
+    """Сохраняет пространства состояний."""
+    try:
+        state_spaces = request.get_json()
+        if not state_spaces:
+            return jsonify({"message": "Нет данных в запросе"}), 400
+
+        with open(STATE_SPACES_FILE, "w", encoding="utf-8") as f:
+            json.dump(state_spaces, f, ensure_ascii=False, indent=4)
+
+        return jsonify({"message": "State spaces сохранены", "filename": STATE_SPACES_FILE}), 200
+
+    except Exception as e:
+        return jsonify({"message": f"Ошибка: {str(e)}"}), 500
+
+
+@app.route('/get_list_state_spaces', methods=['GET'])
+def get_list_state_spaces():
+    """Возвращает сохраненные пространства состояний."""
+    try:
+        state_spaces = load_state_spaces()
+        return jsonify({"state_spaces": state_spaces}), 200
+
+    except Exception as e:
+        return jsonify({"message": f"Ошибка: {str(e)}"}), 500
+
+
+@app.route('/get_experiments', methods=['GET'])
+def get_list_experiments():
+    """Возвращает сохраненные эксперименты в формате: {name: description}"""
+    try:
+        experiments = load_experiments()
+        return jsonify(experiments), 200
+    except Exception as e:
+        return jsonify({"message": f"Ошибка: {str(e)}"}), 500
+
+
+@app.route('/delete_state_space', methods=['POST'])
+def delete_state_space():
+    """Удаляет выбранное пространство состояний по индексу."""
+    try:
+        data = request.get_json()
+        index = data.get("index")
+        if index is None:
+            return jsonify({"message": "Индекс не передан"}), 400
+
+        state_spaces = load_state_spaces()
+        if 0 <= index < len(state_spaces):
+            deleted = state_spaces.pop(index)
+            with open(STATE_SPACES_FILE, "w", encoding="utf-8") as f:
+                json.dump(state_spaces, f, ensure_ascii=False, indent=4)
+            return jsonify({"message": f"Удалено пространство: {deleted['name']}"}), 200
+        else:
+            return jsonify({"message": "Недопустимый индекс"}), 400
+
+    except Exception as e:
+        return jsonify({"message": f"Ошибка: {str(e)}"}), 500
+
+
+@app.route('/save_selected_experiments', methods=['POST'])
+def save_selected_experiments():
+    selected = request.json.get("selected", [])
+    with open(EXP_SELECTED_FILE_PATH, "w", encoding="utf-8") as f:
+        json.dump(selected, f, ensure_ascii=False, indent=2)
+    return jsonify({"message": "Сохранено успешно."})
+
+
+@app.route('/get_selected_experiments', methods=['GET'])
+def get_selected_experiments():
+    if os.path.exists(EXP_SELECTED_FILE_PATH):
+        with open(EXP_SELECTED_FILE_PATH, "r", encoding="utf-8") as f:
+            selected = json.load(f)
+        return jsonify({"selected": selected})
+    return jsonify({"selected": []})
+
+
+@app.route('/save_action_templates', methods=['POST'])
+def save_action_templates():
+    data = request.get_json()
+    name = data.get("name")
+    new_templates = data.get("action_templates")
+
+    if not name or not isinstance(new_templates, list):
+        return jsonify({"error": "Invalid input"}), 400
+
+    # Загружаем текущее состояние
+    if not os.path.exists(STATE_SPACES_FILE):
+        return jsonify({"error": "state_spaces.json not found"}), 404
+
+    with open(STATE_SPACES_FILE, 'r', encoding='utf-8') as f:
+        spaces = json.load(f)
+
+    # Ищем нужное пространство
+    found = False
+    for space in spaces:
+        if space.get("name") == name:
+            space["action_templates"] = new_templates
+            found = True
+            break
+
+    if not found:
+        return jsonify({"error": f"Space with name '{name}' not found"}), 404
+
+    # Сохраняем изменения
+    with open(STATE_SPACES_FILE, 'w', encoding='utf-8') as f:
+        json.dump(spaces, f, ensure_ascii=False, indent=2)
+
+    return jsonify({"message": f"Templates saved for space '{name}'."}), 200
 
 
 # --------------------------------------------------
