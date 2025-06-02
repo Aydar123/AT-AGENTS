@@ -731,6 +731,78 @@
                 const duration = ((endTime - startTime) / 1000).toFixed(2);
                 document.getElementById("executionTime").textContent = `⏳ Время генерации плана: ${duration} сек.`;
             }
+            // КОНТЕЙНЕР для кнопки — правый верхний угол над колонками
+            const graphButtonWrapper = document.createElement('div');
+            graphButtonWrapper.style.display = 'flex';
+            graphButtonWrapper.style.justifyContent = 'flex-start';
+            graphButtonWrapper.style.marginBottom = '20px';
+
+            // Кнопка для открытия окна графа
+            const graphButton = document.createElement('button');
+            graphButton.textContent = 'Визуальное представление генерации плана';
+            graphButton.style.padding = '10px 20px';
+            graphButton.style.fontSize = '16px';
+            graphButton.style.backgroundColor = '#4CAF50';
+            graphButton.style.color = 'white';
+            graphButton.style.border = 'none';
+            graphButton.style.borderRadius = '5px';
+            graphButton.style.cursor = 'pointer';
+
+            graphButton.onclick = () => {
+                modal.style.display = 'block';
+            };
+
+            graphButtonWrapper.appendChild(graphButton);
+
+            // ВСТАВИТЬ НАЧАЛОМ В `resultsContainer`
+            resultsContainer.prepend(graphButtonWrapper);
+            // Модальное окно
+            const modal = document.createElement('div');
+            modal.id = 'graphModal';
+            modal.style.display = 'none';
+            modal.style.position = 'fixed';
+            modal.style.zIndex = '1000';
+            modal.style.left = '0';
+            modal.style.top = '0';
+            modal.style.width = '100%';
+            modal.style.height = '100%';
+            modal.style.overflow = 'auto';
+            modal.style.backgroundColor = 'rgba(0,0,0,0.5)';
+
+            // Содержимое модального окна
+            const modalContent = document.createElement('div');
+            modalContent.style.backgroundColor = '#fefefe';
+            modalContent.style.margin = '5% auto';
+            modalContent.style.padding = '20px';
+            modalContent.style.border = '1px solid #888';
+            modalContent.style.width = '80%';
+            modalContent.style.maxHeight = '80%';
+            modalContent.style.overflowY = 'auto';
+
+            // Кнопка закрытия
+            const closeBtn = document.createElement('span');
+            closeBtn.innerHTML = '&times;';
+            closeBtn.style.color = '#aaa';
+            closeBtn.style.float = 'right';
+            closeBtn.style.fontSize = '28px';
+            closeBtn.style.fontWeight = 'bold';
+            closeBtn.style.cursor = 'pointer';
+            closeBtn.onclick = () => {
+                modal.style.display = 'none';
+            };
+            modalContent.appendChild(closeBtn);
+
+            // PNG-граф в модальном окне
+            const graphImage = document.createElement('img');
+            graphImage.src = '/static/img/graph.png';
+            graphImage.alt = 'Граф планирования';
+            graphImage.style.width = '100%';
+            graphImage.style.marginTop = '20px';
+            graphImage.style.border = '1px solid #ccc';
+            modalContent.appendChild(graphImage);
+
+            modal.appendChild(modalContent);
+            document.body.appendChild(modal);
         });
 
         function toggleContent(content, header) {
