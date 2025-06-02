@@ -251,9 +251,11 @@
     <button id="fetchResults">Запустить совместное функционирование</button>
 
     <!-- Прогресс-бар -->
-    <div id="progressBarContainer"> <!-- Добавлено -->
-        <div id="progressBar"></div> <!-- Добавлено -->
+    <div id="progressBarContainer">
+        <div id="progressBar"></div>
     </div>
+
+    <p id="executionTime" style="text-align: center; font-weight: bold;"></p>
 
     <div class="my_container">
         <a href="/todoOutput" class="my_btn">Назад</a>
@@ -269,6 +271,7 @@
         const resultsContainer = document.getElementById('resultsContainer');
 
         fetchResultsButton.addEventListener('click', async () => {
+            const startTime = performance.now(); // ⏱ Начало замера времени
             try {
                 // Показать прогресс-бар
                 progressBarContainer.style.display = 'block';
@@ -625,10 +628,55 @@
                             plannerTitle.textContent = 'Планировщик';
                             plannerCol.appendChild(plannerTitle);
 
+                            if (result.global_generated_plan) {
+                                const fullPlanDiv = document.createElement('div');
+                                fullPlanDiv.className = 'goal-section';
+
+                                const fullPlanHeader = document.createElement('h4');
+                                fullPlanHeader.textContent = 'Итоговый сгенерированный план:';
+                                fullPlanDiv.appendChild(fullPlanHeader);
+
+                                // Парсим строку
+                                const rawPlan = result.global_generated_plan;
+                                const trimmed = rawPlan.trim().slice(1, -1); // убираем [ и ]
+
+                                const steps = [];
+                                let current = '';
+                                let level = 0;
+
+                                for (let char of trimmed) {
+                                    if (char === '(') level++;
+                                    if (char === ')') level--;
+                                    
+                                    if (char === ',' && level === 0) {
+                                        steps.push(current.trim());
+                                        current = '';
+                                    } else {
+                                        current += char;
+                                    }
+                                }
+                                if (current) steps.push(current.trim());
+
+                                // Для каждого шага создаём отдельный <pre>
+                                steps.forEach((step, idx) => {
+                                    const stepPre = document.createElement('pre');
+                                    stepPre.textContent = `${idx + 1}. ${step}`;
+                                    stepPre.style.fontSize = '14px'; // увеличенный шрифт
+                                    stepPre.style.backgroundColor = '#f0f0f0';
+                                    stepPre.style.padding = '10px';
+                                    stepPre.style.borderRadius = '5px';
+                                    stepPre.style.marginBottom = '10px';
+                                    stepPre.style.whiteSpace = 'pre-wrap';
+                                    fullPlanDiv.appendChild(stepPre);
+                                });
+
+                                plannerCol.appendChild(fullPlanDiv);
+                            }
+
                             if (Array.isArray(result.goal)) {
                                 result.goal.forEach((goal, goalIndex) => {
                                     const goalDiv = document.createElement('div');
-                                    goalDiv.className = 'my_goal-section';
+                                    goalDiv.className = 'goal-section';
 
                                     const goalHeader = document.createElement('h4');
                                     goalHeader.textContent = `Цель ${goalIndex + 1}`;
@@ -639,10 +687,10 @@
                                     goalDiv.appendChild(goalPre);
 
                                     const planHeader = document.createElement('h4');
-                                    planHeader.textContent = 'План';
+                                    planHeader.textContent = 'Конкретизация цели:';
                                     goalDiv.appendChild(planHeader);
 
-                                    const planContent = document.createElement('div');
+                                    const planContent = document.createElement('pre');
                                     if (Array.isArray(result.serialized_plan[goalIndex])) {
                                         planContent.innerHTML = result.serialized_plan[goalIndex].join('<br>');
                                     } else {
@@ -657,7 +705,7 @@
                             // Добавляем колонки в сетку
                             gridContainer.appendChild(attCol);
                             gridContainer.appendChild(solverCol);
-                            // gridContainer.appendChild(plannerCol);
+                            gridContainer.appendChild(plannerCol);
 
                             // Добавляем сетку в content
                             content.appendChild(gridContainer);
@@ -678,6 +726,10 @@
             } finally {
                 // Скрыть прогресс-бар после завершения
                 progressBarContainer.style.display = 'none';
+                // ⏱ Конец замера времени
+                const endTime = performance.now();
+                const duration = ((endTime - startTime) / 1000).toFixed(2);
+                document.getElementById("executionTime").textContent = `⏳ Время генерации плана: ${duration} сек.`;
             }
         });
 

@@ -212,7 +212,8 @@ class InteractionComponent(ATComponent):
             logger.info(f'-------------------------Планировщик-------------------------')
 
             # key = 'Цель_агента.Цель_агента' # Если использовать kb_v3_8
-            key = 'Цели_агента.Цель' # Если использовать kb_v3_4
+            # key = 'Цели_агента.Цель' # Если использовать kb_v3_4
+            key = 'Цель_агента.Цель' # Если использовать kb_v4 - safety
             decomposed_plan_array = []
             goals_array = self.extract_goals(solver_result, key)
 
