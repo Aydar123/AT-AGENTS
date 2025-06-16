@@ -11,8 +11,9 @@ services:
     image: rabbitmq:management
     container_name: rabbit_at_parking
     ports:
-      - 5673:5672
-      - 15673:15672
+      - 5672:5672
+      - 15672:15672
+    user: rabbitmq
     expose:
       - 15672
     healthcheck:
