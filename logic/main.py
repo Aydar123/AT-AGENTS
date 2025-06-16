@@ -213,7 +213,7 @@ class InteractionComponent(ATComponent):
 
             # key = 'Цель_агента.Цель_агента' # Если использовать kb_v3_8
             # key = 'Цели_агента.Цель' # Если использовать kb_v3_4
-            key = 'Цель_агента.Цель' # Если использовать kb_v4 - safety
+            key = 'Цель_агента.Цель' # Если использовать kb_v4 - safety or parking v > 3.9
             decomposed_plan_array = []
             goals_array = self.extract_goals(solver_result, key)
 

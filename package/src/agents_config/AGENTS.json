@@ -2,12 +2,12 @@
     "agent1": {
         "ATSolver": {
             "kb": {
-                "path": "/package/src/kb/Denkov_safety_kb_v4.kbs"
+                "path": "/package/src/kb/Denkov_parking_kb_v3_9.kbs"
             }
         },
         "ATTemporalSolver": {
             "kb": {
-                "path": "/package/src/kb/Denkov_safety_kb_v4.kbs"
+                "path": "/package/src/kb/Denkov_parking_kb_v3_9.kbs"
             }
         },
         "ATSimulationSubsystem": {}

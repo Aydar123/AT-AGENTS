@@ -239,60 +239,6 @@ def add_hla():
         return jsonify({'error': f'Ошибка при обработке запроса: {str(e)}'}), 500
 
 
-# @app.route("/get/rules", methods=["GET"])
-# def get_rules():
-#     # Загружаем XML-файл
-#     tree = ET.parse(KB_XML_FILE_PATH)
-#     root = tree.getroot()
-#
-#     # Извлекаем правила из тега <rules>
-#     rules = []
-#     for rule in root.findall(".//rules/rule"):
-#         rule_id = rule.get("id")
-#         if rule_id:
-#             rules.append(rule_id)
-#
-#     # Возвращаем JSON с правилами
-#     return jsonify(rules)
-
-
-# @app.route("/save/selected_rules", methods=["POST"])
-# def save_selected_rules():
-#     # Проверяем, что запрос содержит данные
-#     if not request.json or 'selected_rules' not in request.json:
-#         return jsonify({"error": "Данные отсутствуют или некорректны"}), 400
-#
-#     selected_rules_ids = request.json['selected_rules']  # Получаем список выбранных правил (id)
-#
-#     # Загружаем XML-файл
-#     if not os.path.exists(KB_XML_FILE_PATH):
-#         return jsonify({"error": f"Файл {KB_XML_FILE_PATH} не найден"}), 500
-#
-#     tree = ET.parse(KB_XML_FILE_PATH)
-#     root = tree.getroot()
-#
-#     # Создаём структуру для выбранных правил
-#     selected_rules_data = {}
-#
-#     for rule_id in selected_rules_ids:
-#         rule = root.find(f".//rules/rule[@id='{rule_id}']")
-#         if rule is not None:
-#             # Конвертируем XML в словарь
-#             rule_dict = xmltodict.parse(ET.tostring(rule, encoding="unicode"))
-#             rule_dict = rule_dict.get("rule", {})  # Извлекаем содержимое тега <rule>
-#
-#             # Добавляем id как ключ
-#             selected_rules_data[rule_id] = rule_dict
-#
-#     try:
-#         with open(SELECTED_RULES_FILE, "w", encoding="utf-8") as json_file:
-#             json.dump(selected_rules_data, json_file, ensure_ascii=False, indent=2)
-#     except Exception as e:
-#         return jsonify({"error": f"Не удалось сохранить файл: {str(e)}"}), 500
-#
-#     return jsonify({"message": "Выбранные правила успешно сохранены", "data": selected_rules_data}), 200
-
-
 @app.route('/upload/kb', methods=['POST'])
 def upload_kb_file():
     if 'file' not in request.files:
